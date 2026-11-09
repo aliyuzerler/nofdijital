@@ -2,11 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   reactStrictMode: false,
+  // PGlite WASM ve auth SDK'sı bundle edilemez; runtime'da native require edilir.
+  serverExternalPackages: ["@electric-sql/pglite", "better-auth", "postgres"],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
