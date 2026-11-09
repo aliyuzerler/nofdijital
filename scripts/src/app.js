@@ -43,6 +43,37 @@ function toast(msg) {
 }
 
 /* ============================================================
+   0) TEMA — koyu/açık, kullanıcı seçimi (localStorage'da saklanır)
+   ============================================================ */
+const THEME_KEY = 'nof-theme';
+function applyTheme(t, animate) {
+  document.documentElement.dataset.theme = t;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', t === 'dark' ? '#15131B' : '#F7F6FA');
+  $$('[data-theme-toggle]').forEach(b => {
+    const lbl = t === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç';
+    b.setAttribute('aria-label', lbl);
+    b.setAttribute('title', lbl);
+  });
+  if (animate && !PRM) {
+    document.documentElement.classList.add('th-anim');
+    setTimeout(() => document.documentElement.classList.remove('th-anim'), 430);
+  }
+}
+function initTheme() {
+  let t = 'light';
+  try { if (localStorage.getItem(THEME_KEY) === 'dark') t = 'dark'; } catch (e) {}
+  applyTheme(t, false);
+  $$('[data-theme-toggle]').forEach(b => b.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    applyTheme(next, true);
+    document.dispatchEvent(new CustomEvent('nof:theme', { detail: next }));
+  }));
+}
+initTheme();
+
+/* ============================================================
    1) HEADER + MOBİL MENÜ
    ============================================================ */
 const hdr = $('#hdr');
@@ -369,7 +400,10 @@ const LB = (() => {
     const shapeCache = new WeakMap();
     let secs = [];
 
-    const BGCOL = { dark: '#15131B', light: '#F7F6FA' };
+    const THEMES = {
+      light: { bg: '#F7F6FA', c1: '130,84,216', c2: '88,52,157' },
+      dark: { bg: '#15131B', c1: '185,160,239', c2: '255,255,255' }
+    };
 
     function resize() {
       W = innerWidth; H = innerHeight;
@@ -505,10 +539,9 @@ const LB = (() => {
       ctx.restore();
     }
 
-    let curBg = null;
     function frame(dt) {
       t += dt;
-      /* aktif bölüm */
+      /* aktif bölüm (şekil sahneleri yine scroll ile değişir) */
       const mark = scrollY + H * .45;
       let target = secs.length - 1;
       for (let i = 0; i < secs.length; i++) {
@@ -516,22 +549,14 @@ const LB = (() => {
         if (top <= mark) target = i;
       }
       secs.forEach((s, i) => s.w = lerp(s.w, i === target ? 1 : 0, .07));
-      const cur = secs[target];
-      const bgHex = cur && cur.dark ? BGCOL.dark : BGCOL.light;
-      if (curBg !== bgHex) {
-        curBg = bgHex;
-        ctx.fillStyle = bgHex;
-        ctx.fillRect(0, 0, W, H);
-      } else {
-        ctx.fillStyle = bgHex;
-        ctx.fillRect(0, 0, W, H);
-      }
+      /* Arka plan + renkler scroll ile DEĞİŞMEZ; yalnızca kullanıcı temasına uyar */
+      const th = THEMES[document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'];
+      ctx.fillStyle = th.bg;
+      ctx.fillRect(0, 0, W, H);
       tmx = lerp(tmx, mx, .05); tmy = lerp(tmy, my, .05);
       secs.forEach(s => {
         if (s.w < .02) return;
-        const col = s.dark ? '185,160,239' : '130,84,216';
-        const col2 = s.dark ? '255,255,255' : '88,52,157';
-        buildShapes(s).forEach(sh => drawShape(sh, sh.r > .78 ? col2 : col, sh.a * s.w * (s.dark ? 1 : .9), dt));
+        buildShapes(s).forEach(sh => drawShape(sh, sh.r > .78 ? th.c2 : th.c1, sh.a * s.w, dt));
       });
       ctx.globalAlpha = 1;
     }
@@ -548,7 +573,9 @@ const LB = (() => {
       cancelAnimationFrame(raf);
       let pending = false;
       const drawStatic = () => { frame(0); pending = false; };
-      addEventListener('scroll', () => { if (!pending) { pending = true; requestAnimationFrame(drawStatic); } }, { passive: true });
+      const queue = () => { if (!pending) { pending = true; requestAnimationFrame(drawStatic); } };
+      addEventListener('scroll', queue, { passive: true });
+      document.addEventListener('nof:theme', queue);
     }
 
     if (matchMedia('(pointer:fine)').matches) {
