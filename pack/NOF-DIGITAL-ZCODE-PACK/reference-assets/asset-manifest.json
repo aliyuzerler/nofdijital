@@ -1,0 +1,138 @@
+{
+  "source_file": "reference/nof_digital.html",
+  "note": "Original Base64 assets extracted byte-for-byte; do not redesign or reorder during porting.",
+  "logo": {
+    "file": "reference-assets/logo.png",
+    "mime": "png",
+    "bytes": 11500,
+    "sha256": "6af22b8c27c882f355aa42aa72218838bc325b3ece2c1877b9d8696c83d2a034"
+  },
+  "gallery": [
+    {
+      "index": 0,
+      "file": "reference-assets/gallery-01.webp",
+      "caption": "Aksiyon · Spor",
+      "aspect_ratio": 0.607,
+      "mime": "webp",
+      "bytes": 21026,
+      "sha256": "8073fac6a3d2ef1f2d9bbf8aa9397ac9e96dcfa342b6267db3738ef465d11483"
+    },
+    {
+      "index": 1,
+      "file": "reference-assets/gallery-02.webp",
+      "caption": "Maç Günü · Duygu",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 36934,
+      "sha256": "bd3afed30b443b91218bf7d7fb16117b5685f6204a877f3ea26df5eeaec408fe"
+    },
+    {
+      "index": 2,
+      "file": "reference-assets/gallery-03.webp",
+      "caption": "Smaç · Hızlı Çekim",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 42990,
+      "sha256": "2d224eb39e4cd7cd030e588bcb6c4d4bbcda9c58449598e47118b10aa4a7a643"
+    },
+    {
+      "index": 3,
+      "file": "reference-assets/gallery-04.webp",
+      "caption": "Salon Atmosferi",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 30128,
+      "sha256": "154e902f03f4b34c10279f9b434db0211a9a40a33b724306712c78ed215b7ad6"
+    },
+    {
+      "index": 4,
+      "file": "reference-assets/gallery-05.webp",
+      "caption": "Kulis · Doğal Anlar",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 22756,
+      "sha256": "6700ba7e9e3c8451767841e1f1c0aee34051e84963e9663792d53f732e895cef"
+    },
+    {
+      "index": 5,
+      "file": "reference-assets/gallery-06.webp",
+      "caption": "Saha Kenarı",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 24958,
+      "sha256": "acd6599265e281e5a0ddf32231455cd0063b217ff521cac1240c0ce58b3eebc7"
+    },
+    {
+      "index": 6,
+      "file": "reference-assets/gallery-07.webp",
+      "caption": "Stüdyo Portre",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 27446,
+      "sha256": "c874acfac811f1fd8e86056a7e158fb0d38fc369f1e7c2fb146f7c9ff82d8bf6"
+    },
+    {
+      "index": 7,
+      "file": "reference-assets/gallery-08.webp",
+      "caption": "Stüdyo · Top",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 24832,
+      "sha256": "29dafed309a13df13fc65b16209d25102813448f16a871573153e83cdd0e7096"
+    },
+    {
+      "index": 8,
+      "file": "reference-assets/gallery-09.webp",
+      "caption": "Kampanya Çekimi",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 24846,
+      "sha256": "47b2f84be23e0295455d92f0ceec8f5bbe7db2c900a657b8cea37b46b49571ae"
+    },
+    {
+      "index": 9,
+      "file": "reference-assets/gallery-10.webp",
+      "caption": "Salon · Renk",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 41482,
+      "sha256": "501b021c1c4120b5f66931864d2624531697b3a1b176a0665a7225a85c004f0c"
+    },
+    {
+      "index": 10,
+      "file": "reference-assets/gallery-11.webp",
+      "caption": "Takım Ruhu",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 53282,
+      "sha256": "6d2f2162ee15a2ae46b810e4a28cb42c329489099b84e79deed1f93ccfb30f53"
+    },
+    {
+      "index": 11,
+      "file": "reference-assets/gallery-12.webp",
+      "caption": "Savunma · Hareket",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 19682,
+      "sha256": "8205a2933a9f8bdedfa438d06c88d2df58ceee34aa79fe3d335d220a54737dfb"
+    },
+    {
+      "index": 12,
+      "file": "reference-assets/gallery-13.webp",
+      "caption": "Takım Bütünlüğü",
+      "aspect_ratio": 0.667,
+      "mime": "webp",
+      "bytes": 60756,
+      "sha256": "12557c2f2dccee4c295a83eaa915593d0ff971452c96628cf1fae0b1d53335a1"
+    },
+    {
+      "index": 13,
+      "file": "reference-assets/gallery-14.webp",
+      "caption": "Takım Fotoğrafı",
+      "aspect_ratio": 1.5,
+      "mime": "webp",
+      "bytes": 126888,
+      "sha256": "5cabcb01e127ecc1b87eeeeab0509fb870712d2b9e638e18d6b9b139c9d8b642"
+    }
+  ]
+}

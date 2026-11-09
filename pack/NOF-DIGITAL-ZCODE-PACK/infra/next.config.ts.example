@@ -1,0 +1,13 @@
+// Merge these options into next.config.ts after confirming the project's version.
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  output: "standalone",
+  images: {
+    // Add only the exact public hostnames used by the selected storage provider.
+    // Do not use an unrestricted remote host wildcard.
+    remotePatterns: [],
+  },
+};
+
+export default nextConfig;
