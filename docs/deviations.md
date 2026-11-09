@@ -12,5 +12,10 @@ AGENTS.md: "Kullanıcı açıkça tasarım değişikliği istemedikçe yeniden t
 ## DEV-002 — Hash URL → gerçek slug URL
 - Kaynak `#/blog/[slug]` kullanır; paket kabul kriteri gerçek `/blog/[slug]` URL'leri ister (00-PROJECT-BRIEF P0). Anchor gezinmesi `/#hizmetler` biçimine çevrilir. (Sapma değil, paket gereksinimi — kayıt amaçlı.)
 
+## DEV-004 — Süreç sayaçları (0N) animasyonu etkinleştirildi
+- **Kaynak davranış:** `count()` fonksiyonu yalnızca gözlemlenen elemanın `data-count`'u varsa tetikleniyor; `.n[data-count]` çocukları gözlemlenmediği için sayaçlar "00"da kalıyordu (baseline screenshot'ta doğrulandı).
+- **Uygulanan değişiklik:** `.st` bölümü görünür olduğunda içindeki `[data-count]` çocuğu sayar (01…05). Görsel sonuç: animasyonlu sayaç — kaynak kodun tasarım niyeti.
+- **Karar:** Kabul — ölü kodun niyetle çalıştırılması; başka davranış değişikliği yok.
+
 ## DEV-003 — Sandbox altyapı uyarlamaları
 - Yönetilen PostgreSQL yerine PGlite (ADR 0001-2); Vercel Blob yerine LocalProvider aktif, Blob adapter hazır. Production env'e geçişte kod değişikliği gerekmez.

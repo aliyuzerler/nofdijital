@@ -47,7 +47,7 @@ export class VercelBlobProvider implements StorageProvider {
 
   async copy(fromKey: string, toKey: string): Promise<{ key: string; publicUrl: string }> {
     const { copy } = await this.sdk();
-    const res = await copy(fromKey, toKey);
+    const res = await copy(fromKey, toKey, { access: "public", addRandomSuffix: false });
     return { key: toKey, publicUrl: res.url };
   }
 

@@ -8,9 +8,6 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   // PGlite WASM ve auth SDK'sı bundle edilemez; runtime'da native require edilir.
   serverExternalPackages: ["@electric-sql/pglite", "better-auth", "postgres"],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
 export default nextConfig;
