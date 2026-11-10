@@ -202,3 +202,7 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
   en küçük kaynak (`nocre-hotel.png` 87×42) ~1.5× yumuşar — kabul edilebilir.
 - Hız korundu: şerit ~%14 genişlediği için `mq` süresi 44s → 50s (px/s benzer); simetri iki şeritte de aynı süre ile korunur.
 - Kanıt: tsc 0, eslint 0; Storybook smoke OK; Playwright E2E ilgili testleri (30 çip + reverse + footer) PASS.
+- Tur 2 (yuvarlak logolar): "yuvarlak olanlar hiç okunmuyor" → çip 220×104 → **240×120**, logo 62px → **82px**
+  (mobil: 168×80 → 184×92, 46px → 54px); max-width 184 → 196px (mobil 144px). Yuvarlak (kare) logolar
+  yükseklik sınırından en çok yararlanır: 62 → 82px = +%32 çap, +%74 alan; geniş logolar max-width'te
+  hafifçe büyür (196px). Hız korundu: `mq` 50s → 54s.

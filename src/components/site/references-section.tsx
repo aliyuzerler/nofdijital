@@ -5,8 +5,9 @@ import { REFERENCE_LOGOS, type ReferenceLogo } from "@/content/references";
  * 1. şerit sağdan sola (normal), 2. şerit soldan sağa (reverse) kayar; aynı süre
  * kullanıldığı için hız simetrisi korunur. Döngü `.band`/`mq` desenidir:
  * içerik iki kez render edilir ve şerit translateX(-50%) ile kayar (nof.css).
- * Ekranda logolar 62px yüksekliğinde beyaz çip kartlarında gösterilir (mobil 46px) —
- * düşük kaliteli kaynaklar büyütülmez (kaynaklar en fazla 220px).
+ * Ekranda logolar 82px yüksekliğinde beyaz çip kartlarında gösterilir (mobil 54px) —
+ * yuvarlak (kare) logolar yükseklik sınırından en çok yararlanır; geniş logolar
+ * max-width ile kırpılır. Düşük kaliteli kaynaklar büyütülmez (kaynaklar en fazla 220px).
  * Saf CSS animasyonu → server component; prefers-reduced-motion kuralı (nof.css)
  * animasyonu otomatik kapatır.
  */
