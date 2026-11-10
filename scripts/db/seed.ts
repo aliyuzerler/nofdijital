@@ -10,6 +10,8 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
+import { drizzle as drizzlePgJs } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { eq, sql } from "drizzle-orm";
 import sharp from "sharp";
 import {
@@ -27,9 +29,29 @@ import {
 } from "../../src/server/db/schema";
 import { SERVICES, PROCESS, CATEGORIES, POSTS, POST_BODY_HTML, GALLERY } from "../../src/content/reference-data";
 
-const dataDir = resolve(process.cwd(), process.env.PGLITE_DATA_DIR ?? "db/pgdata");
-const pg = new PGlite(dataDir);
-const db = drizzle(pg, {});
+/**
+ * DB sürücüsü: DATABASE_DRIVER=postgres (+DATABASE_URL) ile Neon/Postgres'e, aksi halde lokal PGlite'a bağlanır.
+ * İki sürücünün drizzle sorgu arayüzü aynıdır; postgres-js db, pglite tipine cast edilir (script içi pragmatizm).
+ */
+let db: ReturnType<typeof drizzle>;
+let closeDb: () => Promise<void>;
+const driver = process.env.DATABASE_DRIVER ?? "pglite";
+if (driver === "postgres") {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    console.error("DATABASE_URL gerekli (DATABASE_DRIVER=postgres).");
+    process.exit(1);
+  }
+  const client = postgres(url, { prepare: false, max: 1 });
+  db = drizzlePgJs(client, {}) as unknown as ReturnType<typeof drizzle>;
+  closeDb = () => client.end();
+  console.log("postgres modu (DATABASE_URL), max=1, prepare=false");
+} else {
+  const dataDir = resolve(process.cwd(), process.env.PGLITE_DATA_DIR ?? "db/pgdata");
+  const pg = new PGlite(dataDir);
+  db = drizzle(pg, {});
+  closeDb = () => pg.close();
+}
 
 const PUBLISH = process.env.SEED_PUBLISH_POSTS === "1";
 
@@ -360,7 +382,8 @@ async function main() {
     .onConflictDoNothing();
 
   /* Özet */
-  const counts = await db.execute(sql`select
+  // pglite execute → { rows }, postgres-js execute → satır dizisi; ikisini de normalize et
+  const res = await db.execute(sql`select
     (select count(*) from services) services,
     (select count(*) from process_steps) steps,
     (select count(*) from blog_categories) cats,
@@ -368,8 +391,9 @@ async function main() {
     (select count(*) from media_assets) media,
     (select count(*) from portfolio_images) gallery,
     (select count(*) from page_sections) sections`);
-  console.log("Seed tamam:", counts.rows[0]);
-  await pg.close();
+  const summary = (Array.isArray(res) ? res : res.rows) as Record<string, unknown>[];
+  console.log("Seed tamam:", summary[0]);
+  await closeDb();
 }
 
 main().catch((e) => {

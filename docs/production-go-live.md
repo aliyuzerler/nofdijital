@@ -34,9 +34,17 @@ SEED_PUBLISH_POSTS=0        # üretim varsayılanı: içerikler draft olarak aç
 
 ## 2) Dağıtım adımları (Vercel)
 
-1. Repo'yu Vercel'e bağlayın; `bun install` + `bun run build` otomatik çalışır (standalone output).
+1. Repo'yu Vercel'e bağlayın; `npm install` + `next build` otomatik çalışır (lockfile: `package-lock.json`; runtime lockfile `bun.lock` CI içindir).
 2. Ortam değişkenlerini yukarıdaki gibi girin; ilk deploy'u yapın.
-3. Veritabanı şeması: `bun run db:migrate:local` yerine Neon'a karşı migration (`docs/backup-restore.md` pg_restore bölümü + `drizzle/` klasörü).
+3. Veritabanı şeması (Neon'a karşı, sunucusuz değil direct bağlantı):
+   ```bash
+   DATABASE_URL="<neon-direct-bağlantı-cümlesi>" bun run db:migrate:remote
+   # İçerik (draft olarak): 
+   DATABASE_DRIVER=postgres DATABASE_URL="<neon-direct-bağlantı-cümlesi>" SEED_PUBLISH_POSTS=0 bun run db:seed
+   # Canlı owner (idempotent, aynı e-postayı yeniden yazar):
+   DATABASE_DRIVER=postgres DATABASE_URL="<neon-direct-bağlantı-cümlesi>" bun run admin:create <mail> <güçlü-şifre> "NOF Admin" owner
+   ```
+   Script'ler `DATABASE_DRIVER=postgres` modunda postgres.js ile çalışır (`prepare:false`, `max:1`, pgbouncer uyumlu).
 4. İçerik: `SEED_PUBLISH_POSTS=0` ile seed koşulursa tüm yazılar **draft** açılır; admin panelinden tek tek yayınlayın (önerilen üretim akışı).
 
 ## 3) İlk owner hesabı (bootstrap)

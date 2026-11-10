@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "bun scripts/db/migrate-local.ts",
+    "db:migrate:remote": "bun scripts/db/migrate-remote.ts",
     "db:seed": "bun scripts/db/seed.ts",
     "admin:create": "bun scripts/db/create-editor.ts",
     "prod:cleanup": "bun scripts/db/prod-cleanup.ts",
