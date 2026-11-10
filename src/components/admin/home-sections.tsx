@@ -48,7 +48,6 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
   const [title, setTitle] = useState(section.title ?? "");
   const [isVisible, setIsVisible] = useState(section.isVisible);
   const [lead, setLead] = useState(section.lead ?? "");
-  const [chip, setChip] = useState(section.chip ?? "");
   const [accent, setAccent] = useState(section.accent ?? "");
   const [ctaPrimary, setCtaPrimary] = useState(section.ctaPrimary ?? { label: "", href: "" });
   const [ctaSecondary, setCtaSecondary] = useState(section.ctaSecondary ?? { label: "", href: "" });
@@ -64,7 +63,6 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
     try {
       const payload: Record<string, unknown> = { sectionId: section.id, eyebrow, title, isVisible };
       if (section.lead !== null) payload.lead = lead;
-      if (section.chip !== null) payload.chip = chip;
       if (section.accent !== null) payload.accent = accent;
       if (hasCtaPrimary) payload.ctaPrimary = ctaPrimary;
       if (hasCtaSecondary) payload.ctaSecondary = ctaSecondary;
@@ -119,13 +117,6 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
               rows={3}
               className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#8254D8]"
             />
-          </div>
-        ) : null}
-
-        {section.chip !== null ? (
-          <div className="space-y-2">
-            <Label htmlFor={`chip-${section.id}`}>Chip (küçük rozet metni)</Label>
-            <Input id={`chip-${section.id}`} value={chip} onChange={(e) => setChip(e.target.value)} />
           </div>
         ) : null}
 

@@ -206,3 +206,21 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
   (mobil: 168×80 → 184×92, 46px → 54px); max-width 184 → 196px (mobil 144px). Yuvarlak (kare) logolar
   yükseklik sınırından en çok yararlanır: 62 → 82px = +%32 çap, +%74 alan; geniş logolar max-width'te
   hafifçe büyür (196px). Hız korundu: `mq` 50s → 54s.
+
+### Logo düzeni + hero chip + header referans bağlantısı + Partnerlerimiz — PASS (oturum: HOME-PARTNER)
+1. **Logo**: kavisli "DIGITAL" yazısı üstten kaldırıldı (connected-component analizi: 7 küçük bileşen silindi,
+   NOF harf formları + renkleri aynen korundu — `scripts/fix-logo.py`); "DİJİTAL" NOF'un altına, harf paletiyle
+   uyumlu mavi→mor yatay gradyanla, harf aralıklı ve okunaklı (NOF'tan küçük) eklendi → `public/assets/logo.png`
+   (247×173) + `public/uploads/brand/logo.png` kopyası.
+2. **Hero chip**: "Foto · Video · Reklam" rozeti kaldırıldı (page.tsx + nof.css `.chip` + admin
+   home-sections chip alanı); CMS `hero.chip` değeri DB'de kalır ama render edilmez.
+3. **Header**: NAV'a `Referanslarımız → /#referanslar` eklendi (7. madde; masaüstü + mobil menüde otomatik);
+   1240px altı için nav sıkıştırma kuralı; 1100px'te taşma yok.
+4. **Partnerlerimiz**: iletişim formu (UI) kaldırıldı — `/api/contact` API ve iletişim bilgi bloğu aynen kaldı;
+   yerine `aside.ptn` kartı: NOF logosu + Meta Business (simple-icons, #0668E1) + Google Partner (resmi
+   multicolor wordmark, gstatic) + TikTok Marketing (üç renkli nota, cyan/kırmızı/siyah) 2×2 döşeme +
+   i-ck rozetli iş ortaklığı notu. Varlıklar `public/assets/partners/` (simple-icons npm paketinden,
+   `scripts/prepare-partner-assets.py`).
+- Kanıt: tsc 0, eslint 0; **Playwright E2E 21/21 PASS** (referanslar testi header bağlantı doğrulaması ile
+  genişletildi); **Storybook 13/13 PASS**; görsel kontrol: hero (chip yok), iletişim+partnerler (desktop/mobil),
+  header 1100px (taşma yok), logo yakın plan (DİJİTAL okunur).

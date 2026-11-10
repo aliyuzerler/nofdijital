@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ContactForm } from "@/components/site/contact-form";
 import { PostCard, ServiceCards } from "@/components/site/cards";
 import { WorkGallery } from "@/components/site/work-gallery";
 import { ReferencesSection } from "@/components/site/references-section";
@@ -24,7 +23,6 @@ export default async function HomePage() {
   const blogCta = (sections["blog-preview"]?.body as { cta?: { label?: string; href?: string } } | undefined)?.cta;
 
   const heroLead = (hero.lead as string) ?? SITE.heroLead;
-  const heroChip = (hero.chip as string) ?? "Foto · Video · Reklam";
   const heroImages = (hero.images as Array<{ mediaKey: string; alt: string; cls: string }> | undefined) ?? [
     { mediaKey: "gallery/gallery-08.webp", alt: "Stüdyo portre çekimi", cls: "f1" },
     { mediaKey: "gallery/gallery-03.webp", alt: "Maç anı fotoğrafı", cls: "f2" },
@@ -76,12 +74,6 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="art in-load" data-par>
-            <span className="chip">
-              <svg className="i">
-                <use href="#i-cam" />
-              </svg>
-              {heroChip}
-            </span>
             {heroImages.map((h) => (
               <figure className={h.cls} key={h.cls}>
                 { }
@@ -269,7 +261,38 @@ export default async function HomePage() {
               </a>
             </div>
           </div>
-          <ContactForm />
+          <aside className="ptn" data-r aria-label="Partnerlerimiz">
+            <span className="eyb">Partnerlerimiz</span>
+            <h3>
+              Güvenilir platformların <em>resmî iş ortağıyız</em>
+            </h3>
+            <div className="ptn-grid">
+              <div className="ptn-tile me">
+                <img src="/assets/logo.png" alt="NOF Dijital" />
+              </div>
+              <div className="ptn-tile">
+                <img src="/assets/partners/meta.svg" alt="Meta Business" />
+                <span>Meta Business</span>
+              </div>
+              <div className="ptn-tile">
+                <img src="/assets/partners/google-wordmark.png" alt="Google Partner" />
+                <span>Google Partner</span>
+              </div>
+              <div className="ptn-tile">
+                <img src="/assets/partners/tiktok.svg" alt="TikTok Marketing" />
+                <span>TikTok Marketing</span>
+              </div>
+            </div>
+            <p className="ptn-note">
+              <svg className="i">
+                <use href="#i-ck" />
+              </svg>
+              <span>
+                Meta Business, Google Partner ve TikTok Marketing iş ortaklıklarıyla kampanyalarınız resmî
+                kanallardan yönetilir.
+              </span>
+            </p>
+          </aside>
         </div>
       </section>
     </div>

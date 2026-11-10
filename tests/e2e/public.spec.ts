@@ -46,6 +46,8 @@ test.describe("Ana sayfa", () => {
     await expect(refs.locator(".rfg-row.rev")).toHaveCount(1);
     // 15 benzersiz logo × 2 (döngü kopyası)
     await expect(refs.locator(".rfg-chip img")).toHaveCount(30);
+    // yönlendirme: header "Referanslarımız" → /#referanslar
+    await expect(page.locator('nav.m a[href="/#referanslar"]')).toBeVisible();
     // yönlendirme: footer "Referanslarımız" → /#referanslar
     await expect(page.locator('footer a[href="/#referanslar"]')).toBeVisible();
     await page.locator('footer a[href="/#referanslar"]').click();
