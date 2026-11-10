@@ -36,6 +36,21 @@ test.describe("Ana sayfa", () => {
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", stored!);
   });
+
+  test("referanslar: 2 şerit simetrik marquee + footer bağlantısı", async ({ page }) => {
+    await page.goto("/");
+    const refs = page.locator("#referanslar");
+    await expect(refs).toBeVisible();
+    // Brief: iki şerit, biri sağdan sola biri soldan sağa
+    await expect(refs.locator(".rfg-row")).toHaveCount(2);
+    await expect(refs.locator(".rfg-row.rev")).toHaveCount(1);
+    // 15 benzersiz logo × 2 (döngü kopyası)
+    await expect(refs.locator(".rfg-chip img")).toHaveCount(30);
+    // yönlendirme: footer "Referanslarımız" → /#referanslar
+    await expect(page.locator('footer a[href="/#referanslar"]')).toBeVisible();
+    await page.locator('footer a[href="/#referanslar"]').click();
+    await expect(page).toHaveURL(/\/#referanslar$/);
+  });
 });
 
 test.describe("Blog", () => {

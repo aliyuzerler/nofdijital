@@ -33,7 +33,7 @@ bun run test:e2e
 ### Test kapsamı
 | Dosya | Test | Kapsam |
 | --- | --- | --- |
-| `tests/e2e/public.spec.ts` | 9 | ana sayfa/7 hizmet, tema kalıcılığı, blog listesi, sitemap, robots, health, contact API, anonim yönlendirme |
+| `tests/e2e/public.spec.ts` | 10 | ana sayfa/7 hizmet, tema kalıcılığı, **referans marquee (2 şerit + footer bağlantısı)**, blog listesi, sitemap, robots, health, contact API, anonim yönlendirme |
 | `tests/e2e/admin-rbac.spec.ts` | 8 | RBAC matrisi: anonim, yanlış şifre, owner 11 sayfa + ayar, login/logout, editor izin/403 |
 | `tests/e2e/admin-blog.spec.ts` | 1 | blog CRUD: draft→404, publish→200+listed, delete→404 |
 
@@ -60,7 +60,7 @@ bun run test:storybook     # test-runner: dev/build server'a karşı stories tes
 | Grup | Story | Etkileşim testi |
 | --- | --- | --- |
 | UI/Temel Bileşenler | Button (9 varyant), Badge, Card, Switch, Alert | buton tıklaması, input typing, switch toggle |
-| Site/Bölümler | Hizmet kartları (7), PostCard | kart sayısı == 7 (brief), link href |
+| Site/Bölümler | Hizmet kartları (7), PostCard, **Referans Marquee (2 şerit)** | kart sayısı == 7 (brief), link href, şerit yönleri (normal/reverse) + 30 çip |
 | Site/Etkileşim | Tema düğmesi, WhatsApp ×2 | data-theme+localStorage çevrimi, toast uyarısı (ToastHost story içinde mount) |
 | Admin/Yetkisiz | 403 ekranı ×2 | başlık + rol metni görünürlüğü |
 

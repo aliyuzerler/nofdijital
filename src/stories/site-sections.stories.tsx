@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, within } from "storybook/test";
 import { PostCard, ServiceCards } from "@/components/site/cards";
+import { ReferencesSection } from "@/components/site/references-section";
 import { SERVICES, type ServiceItem } from "@/content/reference-data";
 
 /** Public site ana bölümleri: 7 hizmet kartı ve blog kartı (Faz 2 birebir port). */
@@ -47,5 +48,27 @@ export const PostCardExample: StoryObj = {
     expect(link).toBeTruthy();
     expect(link!.getAttribute("href")).toBe("/blog/ornek-yazi");
     await userEvent.hover(link!);
+  },
+};
+
+export const ReferencesMarquee: StoryObj = {
+  name: "Referans Marquee (2 şerit)",
+  render: () => (
+    <div style={{ background: "var(--bg, #0b0b12)", minHeight: "60vh", padding: "48px 0" }}>
+      <ReferencesSection />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    // Brief: simetrik 2 şerit — biri sağdan sola, diğeri soldan sağa
+    const rows = canvasElement.querySelectorAll(".rfg-row");
+    expect(rows.length).toBe(2);
+    const t1 = rows[0]!.querySelector(".rfg-track") as HTMLElement;
+    const t2 = rows[1]!.querySelector(".rfg-track") as HTMLElement;
+    expect(getComputedStyle(t1).animationDirection).toBe("normal");
+    expect(getComputedStyle(t2).animationDirection).toBe("reverse");
+    // 15 benzersiz logo, döngü için iki katı render edilir
+    expect(canvasElement.querySelectorAll(".rfg-chip img").length).toBe(30);
+    // çip boyutu: logolar büyütülmez (max 46px gösterim)
+    expect(canvasElement.querySelectorAll<HTMLImageElement>(".rfg-chip img")[0]!.alt).toBeTruthy();
   },
 };

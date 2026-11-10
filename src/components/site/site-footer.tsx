@@ -42,6 +42,9 @@ export function SiteFooter() {
                 <Link href="/#calismalar">Çalışmalarımız</Link>
               </li>
               <li>
+                <Link href="/#referanslar">Referanslarımız</Link>
+              </li>
+              <li>
                 <Link href="/#hakkimizda">Hakkımızda</Link>
               </li>
               <li>

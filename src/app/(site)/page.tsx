@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ContactForm } from "@/components/site/contact-form";
 import { PostCard, ServiceCards } from "@/components/site/cards";
 import { WorkGallery } from "@/components/site/work-gallery";
+import { ReferencesSection } from "@/components/site/references-section";
 import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, toPostItems } from "@/server/services/repositories";
 import { GALLERY, SITE } from "@/content/reference-data";
 
@@ -123,6 +124,9 @@ export default async function HomePage() {
 
       {/* ÇALIŞMALAR — sticky galeri */}
       <WorkGallery items={galleryItems} />
+
+      {/* REFERANSLARIMIZ — 2 şerit simetrik logo marquee */}
+      <ReferencesSection />
 
       {/* HAKKIMIZDA */}
       <section className="sec alt" id="hakkimizda">

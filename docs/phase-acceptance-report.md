@@ -173,3 +173,24 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
   `tsc --noEmit` 0; `storybook build` exit 0 (1.89s); `test-storybook --index-json` → **12/12 PASS** (7.8s).
   Etki: Vercel `npm install` + CI audit adımı + Dockerfile `npm ci` fallback'i aynı çözümlemede birleşti.
 - Kural: Storybook 10'a geçiş ayrı bir faz olmalı; geçişte test-runner 0.24+ birlikte yükseltilir.
+
+### Referanslarımız marquee — PASS (oturum: REFERENCES-MARQUEE)
+- Talep: RAR'daki referans logoları için "Çalışmalarımız" benzeri kayan bölüm; **simetrik** 2 şerit
+  (biri sağdan sola, biri soldan sağa); logolar ekranda büyük görünmesin; footer'a "Referanslarımız" bağlantısı.
+- Varlıklar: `resimler.rar` → 19 WhatsApp JPEG; md5 ile **4 birebir çift elendi** (Tuzla Canada ×2, Avaron ×2,
+  Maximus Wellness ×2, Maximus Training ×2) → 15 benzersiz marka. `scripts/prepare-reference-logos.py`
+  beyaz kenar kırpma + max 220×340 normalize (yükseltme yok) → `public/assets/logos/<slug>.png` (PNG, toplam ~520KB).
+- Bileşen: `src/components/site/references-section.tsx` (server component — saf CSS animasyonu, JS yok);
+  `src/content/references.ts` statik logo listesi; CSS `nof.css` `.rfg*` — `.band/mq` deseni: içerik 2× render,
+  `translateX(-50%)` döngü; 2. şerit `animation-direction: reverse`; aynı süre (44s) → hız simetrisi;
+  kenar fade maskeleri; hover'da durma; 8/7 logo bölüşü; çip 190×88 (mobil 148×70), logo 46px (mobil 34px).
+- Sayfa/footer: ana sayfada `#referanslar` bölümü Çalışmalar'dan sonra; footer Menü'ye
+  `Referanslarımız → /#referanslar` (header goSection akışı ile uyumlu).
+- A11y: ikinci (döngü) kopya `aria-hidden`, boş alt metinler; reduced-motion global kuralı animasyonu kapatır.
+- Kanıt: tsc 0, eslint 0; **Storybook 13/13 PASS** (yeni "Referans Marquee (2 şerit)" story: yönler + 30 çip);
+  **Playwright E2E 21/21 PASS** (1.3m; yeni test: 2 şerit + reverse + 30 img + footer bağlantısı ve URL).
+- Ortam notu: sandbox geri dönüşümünde `db/`, `.zscripts/` ve eski `.env` silinmişti; migrate+seed+E2E kullanıcıları
+  yeniden kuruldu, `PGLITE_DATA_DIR` absolute verildi (next-server worker'da göreli çözümleme ENOENT veriyordu).
+  `admin@nofdigital.com` (owner) yeni şifreyle yeniden oluşturuldu. Teşhis sırasında görülen "interaktivite kırık"
+  durumu kod hatası değil: Next 16 dev origin koruması `127.0.0.1` kaynaklı dev resource'ları engelliyordu —
+  `localhost` üzerinden tüm interaktivite doğrulandı.
