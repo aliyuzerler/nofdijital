@@ -13,7 +13,7 @@ Tarih: 2026-11-10 · Faz 7 kapanış kontrol listesi. Kaynak: `docs/PHASES/07-se
 - [x] Oturumsuz erişimler: /admin→307, medya upload→401, contact geçersiz→400, draft yazı→404, bootstrap kilitli→409
 - [x] Secret scan: client JS'te yalnız env **adı** getter'ları (değer yok); takip edilen dosyalarda secret yok; .env.example placeholder
 - [x] better-auth: genel kayıt kapalı, rate limit 10/60s, oturum 8s, cookie cache 5dk
-- [ ] `npm audit`: sandbox'ta package-lock üretilemedi (bun.lock) — production makinede `npm install --package-lock-only && npm audit` çalıştırılmalı (açık madde)
+- [x] `npm audit` (Faz 9): package-lock üretildi (repo'da, npm ci fallback için) → **0 critical, 0 prod-direkt high**; next 16.4.6 / zod 4.6.7 / sharp 0.35.5 yamalandı, 13 kullanılmayan paket kaldırıldı. Kalan high'lar upstream-nested (detay: `docs/production-go-live.md` §0 ve §6); CI kapısı `--audit-level=critical`
 
 ## C. Performans (Lighthouse 1.5, prod standalone, localhost)
 | Rapor | Perf | A11y | BP | SEO | LCP | CLS | TBT |

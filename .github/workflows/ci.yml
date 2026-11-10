@@ -1,0 +1,74 @@
+name: CI
+
+# Faz 9: üretim kalite kapıları — lint/typecheck/audit + Playwright E2E + Storybook testleri
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint + Typecheck + Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run typecheck
+      # npm audit yalnızca kritik seviyede kapıyı kapatır (transitive high'lar upstream'e bağlı)
+      - name: npm audit (critical gate)
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+          npm audit --package-lock-only --omit=dev --audit-level=critical
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+      # KISIT-001: PGlite tek yazıcı — kullanıcı kurulumu sunucu çalışmıyorken yapılır
+      - run: bun run db:migrate:local
+      - run: bun run db:seed
+      - run: bun run test:e2e:setup
+      - run: bun run test:e2e
+        env:
+          CI: "1"
+          AUTH_SECRET: 0000000000000000000000000000000000000000000000000000000000000000
+          APP_URL: http://localhost:3000
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: tests/e2e/report
+          retention-days: 7
+
+  storybook:
+    name: Storybook Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+      - run: bun run build:storybook
+      - name: Run test-runner against built storybook
+        run: |
+          bunx storybook dev -p 6006 --ci &
+          SB_PID=$!
+          for i in $(seq 1 60); do
+            sleep 5
+            curl -s -m 2 -o /dev/null http://127.0.0.1:6006/index.json && break
+          done
+          bunx test-storybook --url http://127.0.0.1:6006 --index-json --ci
+          kill $SB_PID

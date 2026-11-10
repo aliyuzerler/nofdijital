@@ -136,3 +136,27 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
 - `bun run test:e2e` → Playwright koşumu (webServer'ı kendisi yönetir)
 - `bun run storybook` / `bun run build:storybook` / `bun run test:storybook`
 - Rehber: `docs/testing-guide.md`
+
+## Faz 9 — Production Hazırlığı: Güvenlik Temizliği, Audit, CI — PASS (2026-11-10, oturum: PROD-PREP)
+
+### Canlı admin + test verisi temizliği — PASS
+- `scripts/db/prod-cleanup.ts` (yeni, idempotent): e2e-* test kullanıcıları (+oturum+credential), geçici şifreli `.local` hesapları, e2e-contact iletişim kayıtları, e2e-smoke yazıları silinir; seed içeriği korunur. Sıra kuralı: ÖNCE cleanup, SONRA admin oluşturma.
+- Nihai DB durumu: **tek şifreli hesap** `admin@nofdigital.com` (owner, güçlü üretilmiş şifre). Seed'in şifresiz placeholder'ı bilinçli olarak korunur (production bootstrap kuralı docs/05 ile uyumlu).
+- Doğrulama (curl): gerçek admin login **200**; silinen test hesabı login **401**; bootstrap **409 "Kurulum daha önce tamamlanmış"** (saldırgan owner üretemez).
+
+### Bağımlılık güvenliği — PASS (0 critical)
+- Yamalandı: **next 16.1.1 → 16.4.6** (2 kritik advisory kapanır), **zod 4.0.2 → 4.6.7** (high), **sharp 0.34.3 → 0.35.5** (libvips/libheif/librsvg CVE'leri).
+- Kaldırıldı (13 paket, tümü sıfır-import kanıtlı `rg` taramasıyla): prisma + @prisma/client (ölü katman `src/lib/db.ts` silindi; `db:push/migrate/reset` legacy scriptleri çıkarıldı), next-auth (kritik advisory'li; proje Better Auth kullanıyor), next-intl, @mdxeditor/editor, recharts (+`ui/chart.tsx`), react-markdown, react-syntax-highlighter, @reactuses/core, uuid, @tanstack/react-query, @dnd-kit/*, @hookform/resolvers, z-ai-web-dev-sdk.
+- `drizzle-kit` devDependencies'e taşındı (build aracı, prod runtime değil).
+- package-lock.json repo'ya eklendi (yalnızca npm audit + Dockerfile `npm ci` fallback'i için; runtime bun.lock).
+- Sonuç: **0 critical; prod-direkt high yok.** Kalan 13 prod-high upstream-nested: defu←better-auth, zod@4.1.11←@vercel/blob→cli-config, source-map-js←next→postcss — upstream sürüm bekler; CI kapısı `npm audit --audit-level=critical`.
+- Regresyon kanıtı: tsc 0, eslint 0 (`storybook-static` ignore eklendi), `bun run build` PASS, **Playwright 20/20 PASS**.
+
+### Docker/standalone smoke — PASS (daemon'sız eşdeğer)
+- Docker daemon sandbox'ta yok → `infra/Dockerfile` runner stage'inin birebir eşleniği koşuldu: `.next/standalone` + `node server.js` (PORT=3101) → health `{"ok":true}` , home 200, /admin 307, **admin login 200** (next@16.4.6 artefaktı). Gerçek `docker build` daemon'lı makinede yapılacak (production-go-live §6).
+
+### CI — eklendi
+- `.github/workflows/ci.yml`: **quality** (bun install → lint → typecheck → npm audit critical gate), **e2e** (migrate+seed+ensure-e2e-users → Playwright, CI=1, artifacts on failure), **storybook** (build + test-runner `--ci`). Her push/PR main'e kapı.
+
+### Rehber
+- `docs/production-go-live.md` (yeni): env şeması, Vercel adımları, bootstrap akışı, veri hijyeni kuralları, canlı çıkış provası listesi, upstream bekleyenler.
