@@ -86,7 +86,7 @@
   "devDependencies": {
     "@playwright/test": "1.57.0",
     "@storybook/nextjs-vite": "9",
-    "@storybook/test-runner": "^0.26.0",
+    "@storybook/test-runner": "0.23.0",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/vite": "^4.3.5",
     "@types/react": "^19",

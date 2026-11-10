@@ -160,3 +160,16 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
 
 ### Rehber
 - `docs/production-go-live.md` (yeni): env şeması, Vercel adımları, bootstrap akışı, veri hijyeni kuralları, canlı çıkış provası listesi, upstream bekleyenler.
+
+### Vercel deploy düzeltmesi — PASS (oturum: VERCEL-ERESOLVE)
+- Bulgu: Vercel ilk deploy'da `npm install` ile ERESOLVE — `@storybook/test-runner@0.26.0` peer alanı yalnızca
+  `storybook ^10+/11+` kabul ediyor; projede `storybook@9.1.21` var. Lokalde bun peer'i esnettiği için Faz 8 koşumları
+  geçmişti; npm'in katı peer kontrolü (Vercel/CI-Docker `npm ci` yolu) kapıyı kapatıyordu.
+- Düzeltme: `@storybook/test-runner` `^0.26.0 → 0.23.0` (pin, caret yok — Storybook 9'dan 10'a geçilmeden 0.24+
+  otomatik alınmasın). 0.23.0 peer alanı: `^8.2.0 || ^9.0.0 || ^9.1.0-0` → 9.1.21 kapsanır; 0.24.0+ ise v10'a kilitli
+  (0.25.0 npm'de yayınlanmadı). Aynı zamanda `package-lock.json` npm resolver'ı ile baştan üretildi (artık npm'in
+  kendi çıktısı; `npm ci`/Vercel deterministik), `bun.lock` 0.23.0'a tazelendi.
+- Kanıt: `npm install --package-lock-only` → exit 0, ERESOLVE yok; lockfile'da `test-runner 0.23.0` çözümlü.
+  `tsc --noEmit` 0; `storybook build` exit 0 (1.89s); `test-storybook --index-json` → **12/12 PASS** (7.8s).
+  Etki: Vercel `npm install` + CI audit adımı + Dockerfile `npm ci` fallback'i aynı çözümlemede birleşti.
+- Kural: Storybook 10'a geçiş ayrı bir faz olmalı; geçişte test-runner 0.24+ birlikte yükseltilir.

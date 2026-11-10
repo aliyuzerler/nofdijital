@@ -68,6 +68,10 @@ Test-runner notu: ortam `within(canvasElement)` kullanır; test-runner'ın testi
 `getByPlaceholder` bulunmaz — label eşleşmesi (`getByLabelText`) tercih edilir. Portal/body'e bağlanan
 bileşenler (ör. `ToastHost`) story render ağacına açıkça eklenmelidir.
 
+Sürüm notu: `@storybook/test-runner` **0.23.0**'a sabitlenmiştir (caret yok). 0.24+ yalnızca Storybook 10+
+kabul eder; npm'in katı peer kontrolü (Vercel `npm install`, Docker `npm ci`) ERESOLVE verir. Storybook 10
+yükseltmesi bu ikisinin birlikte yapıldığı ayrı bir faza bırakılmıştır.
+
 ## 3. Statik kalite kapıları
 ```bash
 bun run lint        # eslint . → 0
