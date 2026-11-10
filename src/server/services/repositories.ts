@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { and, desc, eq, isNull, lte, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb } from "@/server/db";
 import {
   blogCategories,
@@ -12,6 +13,7 @@ import {
   processSteps,
   services,
   navigationItems,
+  user,
 } from "@/server/db/schema";
 import { POSTS, PROCESS, SERVICES, GALLERY, type PostItem } from "@/content/reference-data";
 
@@ -107,6 +109,7 @@ export interface BlogListItem {
   cover: string;
   reading: string;
   publishedAt: Date | null;
+  robotsIndex: boolean;
 }
 
 const TR_MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
@@ -126,6 +129,7 @@ function fixturePosts(): BlogListItem[] {
     cover: GALLERY.files[p.cover] ?? GALLERY.files[0]!,
     reading: p.reading,
     publishedAt: null,
+    robotsIndex: true,
   }));
 }
 
@@ -139,6 +143,7 @@ export async function getPublishedPosts(limit?: number): Promise<BlogListItem[]>
         excerpt: blogPosts.excerpt,
         publishedAt: blogPosts.publishedAt,
         readingMinutes: blogPosts.readingMinutes,
+        robotsIndex: blogPosts.robotsIndex,
         category: blogCategories.name,
         coverUrl: mediaAssets.publicUrl,
       })
@@ -164,6 +169,7 @@ export async function getPublishedPosts(limit?: number): Promise<BlogListItem[]>
       cover: r.coverUrl ?? GALLERY.files[0]!,
       reading: `${r.readingMinutes} dk`,
       publishedAt: r.publishedAt,
+      robotsIndex: r.robotsIndex,
     }));
   }, fixturePosts());
 }
@@ -191,7 +197,18 @@ export interface PostDetail {
   cover: string;
   alt: string;
   bodyJson: unknown;
+  /** SEO / metadata alanları (Faz 6) */
+  seoTitle: string | null;
+  seoDescription: string | null;
+  canonicalUrl: string | null;
+  robotsIndex: boolean;
+  robotsFollow: boolean;
+  publishedAt: Date | null;
+  authorName: string | null;
+  ogImageUrl: string | null;
 }
+
+const ogMedia = alias(mediaAssets, "og_media");
 
 export async function getPublishedPost(slug: string): Promise<PostDetail | null> {
   return safe(async () => {
@@ -204,13 +221,22 @@ export async function getPublishedPost(slug: string): Promise<PostDetail | null>
         publishedAt: blogPosts.publishedAt,
         readingMinutes: blogPosts.readingMinutes,
         bodyJson: blogPosts.bodyJson,
+        seoTitle: blogPosts.seoTitle,
+        seoDescription: blogPosts.seoDescription,
+        canonicalUrl: blogPosts.canonicalUrl,
+        robotsIndex: blogPosts.robotsIndex,
+        robotsFollow: blogPosts.robotsFollow,
         category: blogCategories.name,
+        authorName: user.name,
         coverUrl: mediaAssets.publicUrl,
         coverAlt: mediaAssets.altText,
+        ogUrl: ogMedia.publicUrl,
       })
       .from(blogPosts)
       .leftJoin(blogCategories, eq(blogPosts.categoryId, blogCategories.id))
       .leftJoin(mediaAssets, eq(blogPosts.coverMediaId, mediaAssets.id))
+      .leftJoin(ogMedia, eq(blogPosts.ogImageId, ogMedia.id))
+      .leftJoin(user, eq(blogPosts.authorId, user.id))
       .where(and(eq(blogPosts.slug, slug), eq(blogPosts.status, "published"), isNull(blogPosts.deletedAt)))
       .limit(1);
     if (!rows.length) return null;
@@ -225,6 +251,14 @@ export async function getPublishedPost(slug: string): Promise<PostDetail | null>
       cover: r.coverUrl ?? GALLERY.files[0]!,
       alt: r.coverAlt ?? r.title,
       bodyJson: r.bodyJson,
+      seoTitle: r.seoTitle,
+      seoDescription: r.seoDescription,
+      canonicalUrl: r.canonicalUrl,
+      robotsIndex: r.robotsIndex,
+      robotsFollow: r.robotsFollow,
+      publishedAt: r.publishedAt,
+      authorName: r.authorName ?? null,
+      ogImageUrl: r.ogUrl ?? null,
     };
   }, null);
 }
