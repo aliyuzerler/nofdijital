@@ -569,7 +569,7 @@ html[data-theme="light"] .hero h1 em {
   gap: 18px;
   padding-right: 18px;
   width: max-content;
-  animation: mq 44s linear infinite;
+  animation: mq 50s linear infinite;
   will-change: transform;
 }
 .rfg-row.rev .rfg-track {
@@ -580,8 +580,8 @@ html[data-theme="light"] .hero h1 em {
 }
 .rfg-chip {
   flex: none;
-  width: 190px;
-  height: 88px;
+  width: 220px;
+  height: 104px;
   display: grid;
   place-items: center;
   padding: 12px 18px;
@@ -590,19 +590,19 @@ html[data-theme="light"] .hero h1 em {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 6px 18px -8px rgba(0, 0, 0, 0.18);
 }
 .rfg-chip img {
-  height: 46px;
+  height: 62px;
   width: auto;
-  max-width: 148px;
+  max-width: 184px;
   object-fit: contain;
 }
 @media (max-width: 720px) {
   .rfg-chip {
-    width: 148px;
-    height: 70px;
+    width: 168px;
+    height: 80px;
   }
   .rfg-chip img {
-    height: 34px;
-    max-width: 112px;
+    height: 46px;
+    max-width: 128px;
   }
 }
 

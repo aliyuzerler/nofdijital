@@ -68,7 +68,7 @@ export const ReferencesMarquee: StoryObj = {
     expect(getComputedStyle(t2).animationDirection).toBe("reverse");
     // 15 benzersiz logo, döngü için iki katı render edilir
     expect(canvasElement.querySelectorAll(".rfg-chip img").length).toBe(30);
-    // çip boyutu: logolar büyütülmez (max 46px gösterim)
+    // çip boyutu: logo 62px gösterim (kaynak büyütmesi yok — max 220px kaynak)
     expect(canvasElement.querySelectorAll<HTMLImageElement>(".rfg-chip img")[0]!.alt).toBeTruthy();
   },
 };

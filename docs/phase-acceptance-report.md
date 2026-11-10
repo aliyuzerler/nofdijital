@@ -182,8 +182,8 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
   beyaz kenar kırpma + max 220×340 normalize (yükseltme yok) → `public/assets/logos/<slug>.png` (PNG, toplam ~520KB).
 - Bileşen: `src/components/site/references-section.tsx` (server component — saf CSS animasyonu, JS yok);
   `src/content/references.ts` statik logo listesi; CSS `nof.css` `.rfg*` — `.band/mq` deseni: içerik 2× render,
-  `translateX(-50%)` döngü; 2. şerit `animation-direction: reverse`; aynı süre (44s) → hız simetrisi;
-  kenar fade maskeleri; hover'da durma; 8/7 logo bölüşü; çip 190×88 (mobil 148×70), logo 46px (mobil 34px).
+  `translateX(-50%)` döngü; 2. şerit `animation-direction: reverse`; aynı süre (50s) → hız simetrisi;
+  kenar fade maskeleri; hover'da durma; 8/7 logo bölüşü; çip 220×104 (mobil 168×80), logo 62px (mobil 46px).
 - Sayfa/footer: ana sayfada `#referanslar` bölümü Çalışmalar'dan sonra; footer Menü'ye
   `Referanslarımız → /#referanslar` (header goSection akışı ile uyumlu).
 - A11y: ikinci (döngü) kopya `aria-hidden`, boş alt metinler; reduced-motion global kuralı animasyonu kapatır.
@@ -194,3 +194,11 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
   `admin@nofdigital.com` (owner) yeni şifreyle yeniden oluşturuldu. Teşhis sırasında görülen "interaktivite kırık"
   durumu kod hatası değil: Next 16 dev origin koruması `127.0.0.1` kaynaklı dev resource'ları engelliyordu —
   `localhost` üzerinden tüm interaktivite doğrulandı.
+
+### Referans logo boyut büyütme — PASS (oturum: RFG-SIZE)
+- Kullanıcı geri bildirimi: "kartların içinde çok küçük görünüyorlar" → çip 190×88 → **220×104**, logo 46px → **62px**
+  (mobil: çip 148×70 → 168×80, logo 34px → 46px); max-width 148 → 184px (mobil 128px).
+- Kaynak güvenliği: 15 logonun 13'ü 150–340px genişlikte → 62px gösterimde hepsi **küçülür**, büyütme yok;
+  en küçük kaynak (`nocre-hotel.png` 87×42) ~1.5× yumuşar — kabul edilebilir.
+- Hız korundu: şerit ~%14 genişlediği için `mq` süresi 44s → 50s (px/s benzer); simetri iki şeritte de aynı süre ile korunur.
+- Kanıt: tsc 0, eslint 0; Storybook smoke OK; Playwright E2E ilgili testleri (30 çip + reverse + footer) PASS.
