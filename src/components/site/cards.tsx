@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { GALLERY, SERVICES } from "@/content/reference-data";
+import { GALLERY, SERVICES, type ServiceItem } from "@/content/reference-data";
 
 /** 7 hizmet kartı — tıkla/Enter → hizmet seçimi + iletişime kaydırma. */
-export function ServiceCards() {
+export function ServiceCards({ services = SERVICES }: { services?: ServiceItem[] }) {
   const go = (title: string) => window.dispatchEvent(new CustomEvent("nof-service", { detail: title }));
 
   return (
     <div className="sv" id="svg">
-      {SERVICES.map((s, i) => (
+      {services.map((s, i) => (
         <article
           key={s.title}
           className={`card ${s.span} ${s.variant}`.trim()}
@@ -44,7 +44,7 @@ export function ServiceCards() {
   );
 }
 
-/** Blog kartı (referans .pc) — ortak. */
+/** Blog kartı (referans .pc) — cover artık doğrudan URL'dir (DB medya publicUrl). */
 export function PostCard({
   slug,
   category,
@@ -59,13 +59,14 @@ export function PostCard({
   title: string;
   excerpt: string;
   date: string;
-  cover: number;
+  cover: number | string;
   cls?: string;
 }) {
+  const src = typeof cover === "string" ? cover : (GALLERY.files[cover] ?? GALLERY.files[0]!);
   return (
     <Link className={`pc ${cls}`.trim()} href={`/blog/${slug}`}>
       <div className="im">
-        <img src={GALLERY_COVER(cover)} alt="" loading="lazy" />
+        <img src={src} alt="" loading="lazy" />
       </div>
       <div className="mt">
         <span className="tag">{category}</span>
@@ -81,8 +82,4 @@ export function PostCard({
       </span>
     </Link>
   );
-}
-
-export function GALLERY_COVER(cover: number): string {
-  return GALLERY.files[cover] ?? GALLERY.files[0]!;
 }

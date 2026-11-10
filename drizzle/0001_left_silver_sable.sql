@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "media_storage_key_idx" ON "media_assets" USING btree ("storage_key");--> statement-breakpoint
+CREATE UNIQUE INDEX "process_steps_title_idx" ON "process_steps" USING btree ("title");

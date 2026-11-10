@@ -1,11 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CATEGORIES, type PostItem } from "@/content/reference-data";
+import { CATEGORIES } from "@/content/reference-data";
 import { PostCard } from "./cards";
 
 /** Blog arşivi: kategori filtreleri, arama, sayfalama (referans davranışı). */
-export function BlogArchive({ posts }: { posts: PostItem[] }) {
+export interface ArchiveItem {
+  slug: string;
+  category: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  cover: string;
+  reading: string;
+}
+
+export function BlogArchive({ posts }: { posts: ArchiveItem[] }) {
   const [cat, setCat] = useState("Tümü");
   const [q, setQ] = useState("");
   const [pgi, setPgi] = useState(1);
@@ -31,7 +41,7 @@ export function BlogArchive({ posts }: { posts: PostItem[] }) {
         {view.featured && (
           <>
             <div className="im">
-              <img src={coverUrl(view.featured.cover)} alt="" />
+              <img src={view.featured.cover} alt="" />
             </div>
             <div className="tx">
               <span className="eyb" style={{ color: "var(--pl)" }}>
@@ -114,6 +124,4 @@ export function BlogArchive({ posts }: { posts: PostItem[] }) {
   );
 }
 
-function coverUrl(cover: number): string {
-  return `/assets/gallery/gallery-${String(cover + 1).padStart(2, "0")}.webp`;
-}
+

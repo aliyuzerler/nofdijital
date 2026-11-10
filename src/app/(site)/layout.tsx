@@ -8,9 +8,10 @@ import { ThemeToggle } from "@/components/site/theme-toggle";
 import { ToastHost } from "@/components/site/toast";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { getPublicSettings } from "@/server/services/settings";
+import { getGalleryItems } from "@/server/services/repositories";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getPublicSettings();
+  const [settings, galleryItems] = await Promise.all([getPublicSettings(), getGalleryItems()]);
   return (
     <>
       <IconSprite />
@@ -20,7 +21,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <main>{children}</main>
       <SiteFooter />
       <WhatsAppButton number={settings.whatsappNumber} />
-      <Lightbox />
+      <Lightbox items={galleryItems} />
       <ToastHost />
     </>
   );

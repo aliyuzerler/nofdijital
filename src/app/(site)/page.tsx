@@ -2,17 +2,42 @@ import Link from "next/link";
 import { ContactForm } from "@/components/site/contact-form";
 import { PostCard, ServiceCards } from "@/components/site/cards";
 import { WorkGallery } from "@/components/site/work-gallery";
-import { GALLERY, POSTS, PROCESS, SITE } from "@/content/reference-data";
+import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, toPostItems } from "@/server/services/repositories";
+import { GALLERY, SITE } from "@/content/reference-data";
 
-const HERO_IMG = [
-  { cls: "f1", i: 7, alt: "Stüdyo portre çekimi" },
-  { cls: "f2", i: 2, alt: "Maç anı fotoğrafı" },
-  { cls: "f3", i: 13, alt: "Takım fotoğrafı" },
-];
+const CLS = ["s7", "s5", "s5", "s7"];
+const BAR_H = ["30%", "48%", "40%", "68%", "58%", "84%", "100%"];
 
-export default function HomePage() {
-  const CLS = ["s7", "s5", "s5", "s7"];
-  const BAR_H = ["30%", "48%", "40%", "68%", "58%", "84%", "100%"];
+export default async function HomePage() {
+  const [sections, services, steps, galleryItems, posts] = await Promise.all([
+    getHomeSections(),
+    getServices(),
+    getProcessSteps(),
+    getGalleryItems(),
+    getPublishedPosts(4),
+  ]);
+
+  const hero = sections.hero?.body ?? {};
+  const about = sections.about?.body ?? {};
+  const contact = sections.contact?.body ?? {};
+  const blogCta = (sections["blog-preview"]?.body as { cta?: { label?: string; href?: string } } | undefined)?.cta;
+
+  const heroLead = (hero.lead as string) ?? SITE.heroLead;
+  const heroChip = (hero.chip as string) ?? "Foto · Video · Reklam";
+  const heroImages = (hero.images as Array<{ mediaKey: string; alt: string; cls: string }> | undefined) ?? [
+    { mediaKey: "gallery/gallery-08.webp", alt: "Stüdyo portre çekimi", cls: "f1" },
+    { mediaKey: "gallery/gallery-03.webp", alt: "Maç anı fotoğrafı", cls: "f2" },
+    { mediaKey: "gallery/gallery-14.webp", alt: "Takım fotoğrafı", cls: "f3" },
+  ];
+  const heroImgSrc = (key: string) => `/uploads/${key}`;
+  const aboutValues = (about.values as Array<{ b: string; s: string }> | undefined) ?? SITE.aboutValues;
+  const aboutLead = (about.lead as string) ?? SITE.aboutLead;
+  const aboutImages = (about.images as Array<{ mediaKey: string; alt: string; cls: string }> | undefined) ?? [
+    { mediaKey: "gallery/gallery-14.webp", alt: "Takım çekimi", cls: "a1" },
+    { mediaKey: "gallery/gallery-13.webp", alt: "Takım bütünlüğü", cls: "a2" },
+  ];
+  const contactInfo = (contact.info as Array<{ icon: string; text: string }> | undefined) ?? SITE.contactInfo;
+  const postItems = toPostItems(posts);
 
   return (
     <div id="v-home">
@@ -20,7 +45,7 @@ export default function HomePage() {
       <section className="hero" id="top">
         <div className="wrap">
           <div className="in-load">
-            <span className="eyb">Yaratıcı prodüksiyon × Performans pazarlama</span>
+            <span className="eyb">{sections.hero?.eyebrow ?? "Yaratıcı prodüksiyon × Performans pazarlama"}</span>
             <h1>
               {SITE.heroTitleLines.map((line, i) => (
                 <span className="ln" key={line}>
@@ -36,7 +61,7 @@ export default function HomePage() {
                 </span>
               ))}
             </h1>
-            <p className="lead">{SITE.heroLead}</p>
+            <p className="lead">{heroLead}</p>
             <div className="bt">
               <Link className="btn" href="/#hizmetler">
                 Hizmetlerimizi Keşfedin{" "}
@@ -54,11 +79,12 @@ export default function HomePage() {
               <svg className="i">
                 <use href="#i-cam" />
               </svg>
-              Foto · Video · Reklam
+              {heroChip}
             </span>
-            {HERO_IMG.map((h) => (
+            {heroImages.map((h) => (
               <figure className={h.cls} key={h.cls}>
-                <img src={GALLERY.files[h.i]} alt={h.alt} />
+                { }
+                <img src={heroImgSrc(h.mediaKey)} alt={h.alt} />
               </figure>
             ))}
           </div>
@@ -81,7 +107,7 @@ export default function HomePage() {
       <section className="sec" id="hizmetler">
         <div className="wrap">
           <span className="eyb" data-r>
-            Hizmetlerimiz
+            {sections.services?.eyebrow ?? "Hizmetlerimiz"}
           </span>
           <h2 className="h2" data-r>
             <span className="ln">
@@ -91,28 +117,28 @@ export default function HomePage() {
               <span>tek çatı altında.</span>
             </span>
           </h2>
-          <ServiceCards />
+          <ServiceCards services={services} />
         </div>
       </section>
 
       {/* ÇALIŞMALAR — sticky galeri */}
-      <WorkGallery />
+      <WorkGallery items={galleryItems} />
 
       {/* HAKKIMIZDA */}
       <section className="sec alt" id="hakkimizda">
         <div className="wrap ab">
           <div>
             <span className="eyb" data-r>
-              Hakkımızda
+              {sections.about?.eyebrow ?? "Hakkımızda"}
             </span>
             <h2 data-r>
               Yaratıcılığı <em>stratejiyle</em>, stratejiyi ölçülebilir sonuçlarla birleştiriyoruz.
             </h2>
             <p className="lead" data-r>
-              {SITE.aboutLead}
+              {aboutLead}
             </p>
             <div className="vals" data-r>
-              {SITE.aboutValues.map((v) => (
+              {aboutValues.map((v) => (
                 <div key={v.b}>
                   <b>{v.b}</b>
                   <span>{v.s}</span>
@@ -122,10 +148,12 @@ export default function HomePage() {
           </div>
           <div className="abv" data-r>
             <figure className="a1">
-              <img src={GALLERY.files[13]} alt="Takım çekimi" />
+              { }
+              <img src={heroImgSrc(aboutImages[0]?.mediaKey ?? "gallery/gallery-14.webp")} alt={aboutImages[0]?.alt ?? "Takım çekimi"} />
             </figure>
             <figure className="a2">
-              <img src={GALLERY.files[12]} alt="Takım bütünlüğü" />
+              { }
+              <img src={heroImgSrc(aboutImages[1]?.mediaKey ?? "gallery/gallery-13.webp")} alt={aboutImages[1]?.alt ?? "Takım bütünlüğü"} />
             </figure>
             <div className="pan">
               <small>Örnek performans paneli</small>
@@ -143,13 +171,13 @@ export default function HomePage() {
       <section className="sec" id="surec">
         <div className="wrap">
           <span className="eyb" data-r>
-            Çalışma Sürecimiz
+            {sections.process?.eyebrow ?? "Çalışma Sürecimiz"}
           </span>
           <h2 className="h2" data-r>
             Beş adımda, <span style={{ color: "var(--pl)" }}>net bir yol.</span>
           </h2>
           <div className="pr" id="prc">
-            {PROCESS.map((p, i) => (
+            {steps.map((p, i) => (
               <div className="st" data-r key={p.title}>
                 <div className="n" data-count={i + 1}>
                   00
@@ -168,22 +196,31 @@ export default function HomePage() {
           <div className="bh">
             <div>
               <span className="eyb" data-r>
-                Blog
+                {sections["blog-preview"]?.eyebrow ?? "Blog"}
               </span>
               <h2 className="h2" data-r>
-                Son yazılar
+                {sections["blog-preview"]?.title ?? "Son yazılar"}
               </h2>
             </div>
-            <Link className="btn" href="/blog" data-r>
-              Tüm Yazılar{" "}
+            <Link className="btn" href={blogCta?.href ?? "/blog"} data-r>
+              {blogCta?.label ?? "Tüm Yazılar"}{" "}
               <svg className="i">
                 <use href="#i-arr" />
               </svg>
             </Link>
           </div>
           <div className="bgrid" id="bhome">
-            {POSTS.slice(0, 4).map((p, i) => (
-              <PostCard key={p.slug} slug={p.slug} category={p.category} title={p.title} excerpt={p.excerpt} date={p.date} cover={p.cover} cls={CLS[i] ?? ""} />
+            {postItems.slice(0, 4).map((p, i) => (
+              <PostCard
+                key={p.slug}
+                slug={p.slug}
+                category={p.category}
+                title={p.title}
+                excerpt={p.excerpt}
+                date={p.date}
+                cover={p.cover}
+                cls={CLS[i] ?? ""}
+              />
             ))}
           </div>
         </div>
@@ -194,14 +231,14 @@ export default function HomePage() {
         <div className="wrap ct">
           <div>
             <span className="eyb" data-r>
-              İletişim
+              {sections.contact?.eyebrow ?? "İletişim"}
             </span>
-            <h2 data-r>Markanız için yeni bir başlangıca hazır mısınız?</h2>
+            <h2 data-r>{sections.contact?.title ?? "Markanız için yeni bir başlangıca hazır mısınız?"}</h2>
             <p className="lead" data-r>
-              Hedeflerinizi anlatın; size uygun içerik, prodüksiyon ve reklam planını birlikte şekillendirelim.
+              {(contact.lead as string) ?? "Hedeflerinizi anlatın; size uygun içerik, prodüksiyon ve reklam planını birlikte şekillendirelim."}
             </p>
             <div className="cl" data-r>
-              {SITE.contactInfo.map((c) => (
+              {contactInfo.map((c) => (
                 <div key={c.icon}>
                   <svg className="i">
                     <use href={`#i-${c.icon}`} />

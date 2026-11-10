@@ -118,7 +118,11 @@ export const mediaAssets = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
-  (t) => [index("media_checksum_idx").on(t.checksumSha256), index("media_created_idx").on(t.createdAt)],
+  (t) => [
+    index("media_checksum_idx").on(t.checksumSha256),
+    index("media_created_idx").on(t.createdAt),
+    uniqueIndex("media_storage_key_idx").on(t.storageKey),
+  ],
 );
 
 export const pages = pgTable("pages", {
@@ -169,14 +173,18 @@ export const services = pgTable("services", {
   ...ts,
 });
 
-export const processSteps = pgTable("process_steps", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  position: integer("position").notNull().default(0),
-  isVisible: boolean("is_visible").notNull().default(true),
-  ...ts,
-});
+export const processSteps = pgTable(
+  "process_steps",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    position: integer("position").notNull().default(0),
+    isVisible: boolean("is_visible").notNull().default(true),
+    ...ts,
+  },
+  (t) => [uniqueIndex("process_steps_title_idx").on(t.title)],
+);
 
 export const portfolioProjects = pgTable("portfolio_projects", {
   id: uuid("id").primaryKey().defaultRandom(),

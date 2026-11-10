@@ -2,23 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PostCard } from "@/components/site/cards";
-import { POSTS, POST_BODY_HTML } from "@/content/reference-data";
+import { RenderPostBody } from "@/components/site/render-post-body";
+import { getPublishedPost, getPublishedPosts } from "@/server/services/repositories";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-function findPost(slug: string) {
-  return POSTS.find((p) => p.slug === slug);
-}
-
-export function generateStaticParams() {
-  return POSTS.map((p) => ({ slug: p.slug }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = findPost(slug);
+  const post = await getPublishedPost(slug);
   if (!post) return { title: "Yazı bulunamadı — NOF DİJİTAL" };
   return {
     title: `${post.title} — NOF DİJİTAL`,
@@ -28,11 +21,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PostPage({ params }: Props) {
   const { slug } = await params;
-  const post = findPost(slug);
+  const post = await getPublishedPost(slug);
   if (!post) notFound();
 
-  const body = POST_BODY_HTML.replace("%LEAD%", post.excerpt);
-  const related = POSTS.filter((x) => x.slug !== post.slug)
+  const all = await getPublishedPosts();
+  const related = all
+    .filter((x) => x.slug !== post.slug)
     .sort((a, b) => Number(b.category === post.category) - Number(a.category === post.category))
     .slice(0, 3);
 
@@ -56,10 +50,12 @@ export default async function PostPage({ params }: Props) {
             <h1>{post.title}</h1>
           </div>
           <div className="cv">
-            <img src={`/assets/gallery/gallery-${String(post.cover + 1).padStart(2, "0")}.webp`} alt={post.title} />
+            { }
+            <img src={post.cover} alt={post.alt} />
           </div>
-          {/* Statik fixture gövdesi — Faz 4'te Tiptap JSON + allowlist render ile değişir */}
-          <div className="wrap art2 bd" style={{ marginTop: 56 }} dangerouslySetInnerHTML={{ __html: body }} />
+          <div className="wrap art2 bd" style={{ marginTop: 56 }}>
+            <RenderPostBody doc={post.bodyJson} />
+          </div>
         </article>
         <div className="wrap" style={{ marginTop: 90 }}>
           <h3 style={{ fontSize: "2rem" }}>İlgili yazılar</h3>

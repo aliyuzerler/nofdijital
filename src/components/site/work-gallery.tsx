@@ -3,18 +3,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import { GALLERY } from "@/content/reference-data";
 import { placeScene } from "./gallery-engine";
+import type { GalleryItemView } from "@/server/services/repositories";
 
 /**
  * Referans sticky yatay galeri: 3 sahne × 7 benzersiz fotoğraf,
  * scroll ile senkron yatay kaydırma, ilerleme göstergesi, lightbox tetiği.
+ * Görseller DB'den (portfolio_images) gelir; fallback GALLERY sabiti.
  */
-export function WorkGallery() {
+export function WorkGallery({ items }: { items?: GalleryItemView[] }) {
   const secRef = useRef<HTMLElement>(null);
   const stkRef = useRef<HTMLDivElement>(null);
   const gtRef = useRef<HTMLDivElement>(null);
   const wnRef = useRef<HTMLSpanElement>(null);
   const wbRef = useRef<HTMLElement>(null);
   const state = useRef({ W: 0, H: 0, mode: false, range: 1 });
+
+  const files = items && items.length === 14 ? items.map((i) => i.src) : [...GALLERY.files];
+  const captions = items && items.length === 14 ? items.map((i) => i.caption) : [...GALLERY.captions];
+  const ars = items && items.length === 14 ? items.map((i) => i.ar) : [...GALLERY.ar];
 
   const scrollWork = useCallback(() => {
     const sec = secRef.current;
@@ -46,13 +52,13 @@ export function WorkGallery() {
       gt.style.width = GALLERY.scenes.length * W + "px";
       gt.innerHTML = GALLERY.scenes
         .map((ids, si) => {
-          const placed = placeScene(ids, W, H, 101 + si * 37 + (mob ? 900 : 0), mob, GALLERY.ar);
+          const placed = placeScene(ids, W, H, 101 + si * 37 + (mob ? 900 : 0), mob, ars);
           return (
             `<div class="scene" style="width:${W}px">` +
             placed
               .map(
                 (p) =>
-                  `<figure class="ph" tabindex="0" data-id="${p.id}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px;--r:${p.rot.toFixed(2)}deg"><img src="${GALLERY.files[p.id]}" alt="${GALLERY.captions[p.id]}" draggable="false"><figcaption class="cp"><span>${GALLERY.captions[p.id]}</span><svg class="i"><use href="#i-arr"/></svg></figcaption></figure>`,
+                  `<figure class="ph" tabindex="0" data-id="${p.id}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px;--r:${p.rot.toFixed(2)}deg"><img src="${files[p.id]}" alt="${captions[p.id]}" draggable="false"><figcaption class="cp"><span>${captions[p.id]}</span><svg class="i"><use href="#i-arr"/></svg></figcaption></figure>`,
               )
               .join("") +
             "</div>"
@@ -65,7 +71,7 @@ export function WorkGallery() {
       st.range = range;
       scrollWork();
     },
-    [scrollWork],
+    [scrollWork, files, captions, ars],
   );
 
   useEffect(() => {
@@ -76,11 +82,8 @@ export function WorkGallery() {
       tm = setTimeout(() => layoutGallery(), 200);
     };
     window.addEventListener("resize", onResize);
-    const onTheme = () => layoutGallery(true); // tema geçişinde boyutlar sabit; güvenli yeniden ölçüm
-    window.addEventListener("nof-theme-change", onTheme);
     return () => {
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("nof-theme-change", onTheme);
       clearTimeout(tm);
     };
   }, [layoutGallery]);

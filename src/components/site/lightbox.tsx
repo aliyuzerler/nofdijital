@@ -2,14 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import { GALLERY } from "@/content/reference-data";
+import type { GalleryItemView } from "@/server/services/repositories";
 
 /** Referans lightbox: döngüsel 14 görsel, ESC/oklar, swipe, caption. */
-export function Lightbox() {
+export function Lightbox({ items }: { items?: GalleryItemView[] }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const capRef = useRef<HTMLDivElement>(null);
   const idx = useRef(0);
   const touchX = useRef(0);
+
+  const files = items && items.length === 14 ? items.map((i) => i.src) : [...GALLERY.files];
+  const captions = items && items.length === 14 ? items.map((i) => i.caption) : [...GALLERY.captions];
 
   useEffect(() => {
     const lb = boxRef.current;
@@ -20,12 +24,12 @@ export function Lightbox() {
       idx.current = ((i % 14) + 14) % 14;
       li.style.opacity = "0";
       setTimeout(() => {
-        li.src = GALLERY.files[idx.current]!;
-        li.alt = GALLERY.captions[idx.current] ?? "";
+        li.src = files[idx.current]!;
+        li.alt = captions[idx.current] ?? "";
         li.style.opacity = "1";
       }, 120);
       if (capRef.current)
-        capRef.current.textContent = `${GALLERY.captions[idx.current]}  ·  ${idx.current + 1} / 14`;
+        capRef.current.textContent = `${captions[idx.current]}  ·  ${idx.current + 1} / 14`;
     };
     const open = (i: number) => {
       show(i);
@@ -75,6 +79,7 @@ export function Lightbox() {
       lb.removeEventListener("touchend", onTouchEnd);
       lb.removeEventListener("click", onBackdrop);
     };
+     
   }, []);
 
   return (

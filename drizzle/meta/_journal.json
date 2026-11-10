@@ -8,6 +8,13 @@
       "when": 1794267420683,
       "tag": "0000_heavy_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794268819962,
+      "tag": "0001_left_silver_sable",
+      "breakpoints": true
     }
   ]
 }

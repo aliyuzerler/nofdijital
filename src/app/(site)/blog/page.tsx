@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { BlogArchive } from "@/components/site/blog-archive";
-import { POSTS } from "@/content/reference-data";
+import { getPublishedPosts, toPostItems } from "@/server/services/repositories";
 
 export const metadata: Metadata = {
   title: "Blog — NOF DİJİTAL",
   description: "Sosyal medya, reklam yönetimi ve prodüksiyon üzerine kısa, uygulanabilir notlar.",
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const posts = toPostItems(await getPublishedPosts());
   return (
     <div className="pg" id="v-blog">
       <div className="pgsec">
@@ -17,7 +18,7 @@ export default function BlogPage() {
             Fikirler, <em>veriler</em> &amp; kareler.
           </h1>
           <p className="lead">Sosyal medya, reklam yönetimi ve prodüksiyon üzerine kısa, uygulanabilir notlar.</p>
-          <BlogArchive posts={POSTS.map((p) => ({ ...p }))} />
+          <BlogArchive posts={posts} />
         </div>
       </div>
     </div>
