@@ -27,8 +27,13 @@ async function createDb(): Promise<Database> {
     return drizzlePgJs(client, { schema });
   }
   // pglite
-  const { resolve } = await import("node:path");
-  const dataDir = resolve(process.cwd(), process.env.PGLITE_DATA_DIR ?? "db/pgdata");
+  const { isAbsolute, resolve } = await import("node:path");
+  const rawDir = process.env.PGLITE_DATA_DIR ?? "db/pgdata";
+  // Next standalone sunucusu process.chdir() ile .next/standalone içine geçer;
+  // göreli veri dizini proje köküne göre çözümlenmelidir (Faz 7 build doğrulaması).
+  const cwd = process.cwd();
+  const appRoot = cwd.replace(/[\\/]\.next[\\/]standalone$/, "");
+  const dataDir = isAbsolute(rawDir) ? rawDir : resolve(appRoot, rawDir);
   const pg = globalForDb.nofPglite ?? new PGlite(dataDir);
   globalForDb.nofPglite = pg;
   return drizzle(pg, { schema });

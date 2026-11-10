@@ -58,9 +58,21 @@ Komutlar: `bun run lint` (0 error), `bunx tsc --noEmit` (0 error), `curl` rota p
 - BUILD NOTU: `bun run build` bu oturumda koşulmadı (dev sunucusu 3000'i meşgul tutuyor; build ayrı oturumda doğrulanmalı). Docker build sandbox'ta denenmedi (Docker yok).
 
 ## Bilinen eksikler / sonraki adımlar
-1. `bun run build` + `bun run start` (standalone) doğrulaması.
+1. ~~`bun run build` + `bun run start` (standalone) doğrulaması.~~ → **Faz 7'de tamamlandı (aşağıda).**
 2. Lighthouse/CWV ölçümü ve bundle analizi (Faz 7 ölçüm başlıkları).
 3. Editor kullanıcısıyla RBAC matris E2E'si.
 4. Görsel piksel-diff otomasyonu (PerceptualDiff/Playwright) — şu an manuel karşılaştırma.
 5. Production'da SEED_PUBLISH_POSTS=0 + gerçek admin şifresi bootstrap.
 6. Veritabanı yedekleme/restore tatbikatı belgesi.
+
+## Faz 7 — Build ve Release Doğrulaması — PASS (2026-11-10, oturum: REPO-PUSH)
+
+- [x] `bunx tsc --noEmit` → 0 error; `bun run lint` → 0 error.
+- [x] `bun run build` → PASS. pgdata sağlıklıyken statik prerender gerçek DB içeriğini okudu (DB fallback uyarısı yok).
+- [x] Standalone (`bun .next/standalone/server.js`, PORT=3100) → `/api/health` `{"ok":true,"db":"pglite"}`; `/`, `/blog` 200; `/admin` 307→login; sitemap/robots 200; ana sayfa HTML'i dev ile birebir (hero metni `<span class="ln">` satır sarmalayıcılarıyla bölünür — test artefaktıdır).
+- **HATA-001 (düzeltildi):** Next standalone sunucusu `process.chdir()` ile `.next/standalone` içine geçiyor; göreli `PGLITE_DATA_DIR` yanlış çözümleniyordu → `src/server/db/index.ts` proje kökünü `.next/standalone` son ekine göre geri hesaplıyor; mutlak yol verilirse aynen kullanılıyor.
+- **HATA-002 (düzeltildi):** Sandbox'lar arası zorla kapatma sonrası `db/pgdata` bozuldu ("PGlite failed to initialize properly") → bozuk dizin `db/pgdata.corrupt.bak` olarak arşivlendi, migration+seed idempotent akışla taze kuruldu.
+- **KISIT-001 (bilinen):** PGlite tek yazıcıdır — dev (3000) ve standalone (3100) aynı `db/pgdata` dizinini EŞ ZAMANLI açamaz; ikinci başlayan "select 1" hatası verir. Production'da tek süreç/tek dizin kuralı geçerlidir; çoklu örnek için `DATABASE_DRIVER=postgres` kullanılmalıdır.
+- [x] Sağlık rotası teşhis log'u güçlendirildi (cause/cwd/driver/dataDir — istemciye sızmaz, docs/05 uyumlu).
+- [x] Repo yayına hazır: `.env` + `db/` git geçmişinden temizlendi (filter-branch), `.env.example` eklendi, `main` → `github.com/aliyuzerler/nofdijital` pushlandı.
+- Not: Lighthouse ölçümü bu oturumda yapılmadı (eksik #2 açık).

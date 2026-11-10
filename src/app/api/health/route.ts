@@ -16,8 +16,17 @@ export async function GET() {
       latencyMs: Date.now() - started,
     });
   } catch (e) {
-    // Hata detayı (SQL/stack) istemciye sızmaz (docs/05).
-    console.error("[health] db check failed:", e instanceof Error ? e.message : e);
+    // Hata detayı (SQL/stack) istemciye sızmaz (docs/05) — yalnız sunucu log'una yazılır.
+    const cause =
+      e instanceof Error && e.cause instanceof Error ? e.cause.message : e instanceof Error ? e.cause : undefined;
+    console.error(
+      "[health] db check failed:",
+      e instanceof Error ? e.message : e,
+      "| cause:", cause,
+      "| cwd:", process.cwd(),
+      "| driver:", process.env.DATABASE_DRIVER ?? "pglite",
+      "| dataDir:", process.env.PGLITE_DATA_DIR ?? "db/pgdata",
+    );
     return NextResponse.json({ ok: false }, { status: 503 });
   }
 }
