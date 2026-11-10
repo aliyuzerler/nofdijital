@@ -12,6 +12,9 @@ export async function createAuth() {
   const db = await getDb();
   return betterAuth({
     secret: process.env.AUTH_SECRET,
+    // BaseURL APP_URL'den gelir; yoksa better-auth localhost:3000'e düşer ve
+    // farklı port/host'tan gelen tarayıcı istekleri INVALID_ORIGIN (403) alır.
+    baseURL: process.env.APP_URL,
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 10,

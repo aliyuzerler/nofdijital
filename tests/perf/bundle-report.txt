@@ -1,0 +1,50 @@
+$ next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
+▲ Next.js 16.1.3 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 18.9s
+  Running TypeScript ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/9) ...
+  Generating static pages using 1 worker (2/9) 
+[guards] oturum okunamadı: Dynamic server usage: Route /admin/login couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+2026-11-10T07:42:40.145Z WARN [Better Auth]: [better-auth] Base URL is not set. Set the baseURL option or BETTER_AUTH_URL env, or use a dynamic baseURL with allowedHosts for multi-host setups. Without it the origin is derived from the incoming request, and callbacks and redirects may not work correctly.
+  Generating static pages using 1 worker (4/9) 
+  Generating static pages using 1 worker (6/9) 
+✓ Generating static pages using 1 worker (9/9) in 824.2ms
+  Finalizing page optimization ...
+
+Route (app)                  Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /admin/audit-log
+├ ƒ /admin/blog
+├ ƒ /admin/blog/[id]
+├ ƒ /admin/blog/new
+├ ƒ /admin/login
+├ ƒ /admin/media
+├ ƒ /admin/messages
+├ ƒ /admin/navigation
+├ ƒ /admin/pages/home
+├ ƒ /admin/portfolio
+├ ƒ /admin/process
+├ ƒ /admin/services
+├ ƒ /admin/settings/general
+├ ƒ /admin/settings/seo
+├ ƒ /api
+├ ƒ /api/admin/bootstrap
+├ ƒ /api/admin/media
+├ ƒ /api/auth/[...all]
+├ ƒ /api/contact
+├ ƒ /api/health
+├ ○ /blog
+├ ƒ /blog/[slug]
+├ ○ /robots.txt
+└ ○ /sitemap.xml                     1h      1y
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
