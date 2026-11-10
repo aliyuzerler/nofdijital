@@ -12,6 +12,13 @@ node_modules
 
 # testing
 /coverage
+# storybook: build çıktısı (test-runner dev server üzerinden koşar)
+/storybook-static/
+# playwright: artifacts + oturum state'leri (cookie içerir, repo'ya girmez)
+/test-results/
+/tests/e2e/.artifacts/
+/tests/e2e/.auth/
+/tests/e2e/report/
 
 # next.js
 /.next/

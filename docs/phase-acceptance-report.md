@@ -108,3 +108,31 @@ Detaylı tablolar ve kanıtlar: `docs/release-checklist.md`, `docs/backup-restor
 ### Piksel-diff otomasyonu — araç PASS
 - `scripts/visual-diff.mjs` (pixelmatch+pngjs): 13 çift karşılaştırıldı, diff PNG'leri + rapor `tests/visual/diff/`. Statik bölümler referansa yakın (iletişim %7.1, süreç %12.7); galeri/hero yüksek fark randomizasyon+canvas'tan (beklenen, bilgilendirme amaçlı — CI kapısı değil). 8 çiftte referans karşılık yok (dark/light/mobil durumlar).
 - Dev notu: bu oturumda sandbox şablon temizliği `db/` ve `.env`'i sıfırladı; DB yeniden kuruldu (migrate+seed idempotent akış 3. kez kanıtlandı), `.env` restore edildi, owner+editor hesapları `scripts/db/create-editor.ts` ile oluşturuldu.
+
+## Faz 8 — Test Otomasyonu: Playwright E2E + Storybook — PASS (2026-11-10, oturum: TEST-AUTOMATION)
+
+### Playwright E2E — 20/20 PASS
+- Kurulum: `@playwright/test@1.57` (chromium-1200 önbellekten, indirme gerekmedi). `playwright.config.ts`: webServer `bun run dev` (3000), `/api/health` hazırlık kapısı, workers:1 (PGlite tek-yazıcı + paylaşılan seed), trace retain-on-failure.
+- Kullanıcı kurulumu: `scripts/db/ensure-e2e-users.ts` (idempotent; `e2e-owner@nofdigital.local` / `e2e-editor@nofdigital.local`, sunucu KAPALIYKEN çalışır → `bun run test:e2e:setup`).
+- Oturum yönetimi: `tests/e2e/auth.setup.ts` setup project rol başına **bir kez** sign-in açıp `storageState` yazar; testler cookie'li context'lerle başlar.
+- Kapsam (`tests/e2e/`):
+  - `public.spec.ts` (9 test): ana sayfa + **7 hizmet kartı**, tema düğmesi kalıcılığı (data-theme + localStorage), blog listesi, sitemap.xml blog URL'leri, robots.txt /admin koruması, /api/health, contact API pozitif+400, /admin anonim→307.
+  - `admin-rbac.spec.ts` (8 test): RBAC matrisi otomasyonu (Faz 7 manuel E2E'nin kalıcı hali) — anonim yönlendirme, **yanlış şifre reddi (gerçek sign-in)**, owner 11 admin sayfası 200 + ayar kaydetme, gerçek login/logout akışı, editor izinli 3 sayfa 200, editor'e ayarlar+menüde "Bu alana erişim yetkiniz yok".
+  - `admin-blog.spec.ts` (1 test): blog CRUD uçtan uca — create(draft) → public 404 → publish(satır menüsü) → public 200 + listede (öne çıkan `a.ft` kartı dahil) → delete(onay diyaloğu) → public 404.
+- Koşum kanıtı: `bunx playwright test` → **20 passed (1.3m)**; `bunx tsc --noEmit` 0, `eslint .` 0.
+
+### Storybook — 12/12 PASS (SB 9.1 + nextjs-vite)
+- Kurulum: `storybook@9`, `@storybook/nextjs-vite`, `@tailwindcss/vite` (viteFinal ile Tailwind v4), `staticDirs: public/`; global dekoratör `data-theme` toolbar'ı (Koyu/Açık) + `IconSprite`.
+- Stories (`src/stories/`, 12 story): UI/Temel Bileşenler (Button varyantları, Badge, Card, Switch, Alert + play testleri), Site/Bölümler (7 hizmet kartı sayımı, PostCard link), Site/Etkileşim (tema düğmesi play: data-theme+localStorage çevrimi; WhatsApp pozitif + numarasız→toast uyarısı), Admin/Yetkisiz Ekranı (editor 403 + rolü olmayan).
+- Doğrulama: `storybook dev --ci --smoke-test` exit 0; `bunx storybook build` exit 0 (1.77s); `bunx test-storybook --index-json` → **12 passed, 12 total** (test-runner playwright 1.57, aynı chromium-1200).
+
+### Koşumda görülen bulgular (test tasarımı kayıtları; ürün kodu değişikliği gerekmedi)
+- **BULGU-001 (dikkat):** better-auth `rateLimit` 60s/10 — E2E gibi çok sayıda sign-in üreten koşumlar limiti aşabilir; çözüm setup-project + storageState (koşum başına 4 auth isteği). Production davranışı bilinçli ve doğru.
+- **BULGU-002 (UX notu):** admin üstbilgi aksiyon düğmeleri (Kaydet/Yayınla) sağ üst köşede; sonner bildirimleri aynı köşeye düşer ve fare üzerinde beklerken tıklamayı kesebilir. Test akışı bildirimden etkilenmeyen satır menüsüne taşındı; insan kullanıcada bildirim ~4s'de kendiliğinden kapanır. Gelecek iyileştirme: bildirim konumu/buton altına düşme.
+- **BULGU-003 (test düzeltmesi):** blog listesinde en yeni yazı "öne çıkan" kartta (`a.ft`) render ediliyor — liste seçicisi `a.pc` yerine ortak href seçicisi oldu.
+
+### Komutlar (repo kökü)
+- `bun run test:e2e:setup` → E2E kullanıcıları (sunucu kapalıyken)
+- `bun run test:e2e` → Playwright koşumu (webServer'ı kendisi yönetir)
+- `bun run storybook` / `bun run build:storybook` / `bun run test:storybook`
+- Rehber: `docs/testing-guide.md`
