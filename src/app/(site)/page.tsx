@@ -7,7 +7,6 @@ import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, g
 import { GALLERY, SITE } from "@/content/reference-data";
 
 const CLS = ["s7", "s5", "s5", "s7"];
-const BAR_H = ["30%", "48%", "40%", "68%", "58%", "84%", "100%"];
 
 export default async function HomePage() {
   const [sections, services, steps, galleryItems, posts, statsSection] = await Promise.all([
@@ -176,14 +175,6 @@ export default async function HomePage() {
               { }
               <img src={heroImgSrc(aboutImages[1]?.mediaKey ?? "gallery/gallery-13.webp")} alt={aboutImages[1]?.alt ?? "Takım bütünlüğü"} />
             </figure>
-            <div className="pan">
-              <small>Örnek performans paneli</small>
-              <div className="bars">
-                {BAR_H.map((h) => (
-                  <i key={h} style={{ "--h": h } as React.CSSProperties} />
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </section>
