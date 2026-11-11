@@ -246,7 +246,10 @@ body:has(.admin-root) :where(textarea):not(.alx-root *) {
   font-weight: 700;
   color: rgba(255, 255, 255, 0.74);
 }
-.alx-input {
+/* nof.css'in KATMANSIZ element kuralı "input:focus { background:#fff }" (0,1,1)
+   sınıf seçiciyi (0,1,0) ezer → odakta beyaz zemin + beyaz yazı = görünmez giriş.
+   Bu yüzden .alx-input kuralları .alx-root ile scope'lanarak specificity yükseltilir. */
+.alx-root .alx-input {
   width: 100%;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -255,14 +258,35 @@ body:has(.admin-root) :where(textarea):not(.alx-root *) {
   font-size: 0.92rem;
   font-family: var(--fb);
   color: #fff;
+  caret-color: #fff;
   outline: none;
-  transition: border-color 0.2s;
+  box-shadow: none;
+  transition: border-color 0.2s, background 0.2s;
 }
-.alx-input:focus {
+.alx-root .alx-input:hover {
+  border-color: rgba(255, 255, 255, 0.26);
+}
+.alx-root .alx-input:focus {
   border-color: #9335ff;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  caret-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 53, 255, 0.25);
 }
-.alx-input::placeholder {
+.alx-root .alx-input::placeholder {
   color: rgba(255, 255, 255, 0.32);
+  opacity: 1;
+}
+/* Chrome/Edge autofill'i koyu temada okunur tut (beyaz zemin dayatmasını engelle) */
+.alx-root .alx-input:-webkit-autofill,
+.alx-root .alx-input:-webkit-autofill:hover,
+.alx-root .alx-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  -webkit-box-shadow: 0 0 0 1000px #232129 inset;
+  border-color: #9335ff;
+  transition: background-color 9999s ease-in-out 0s;
 }
 .alx-hint {
   font-size: 0.75rem;
