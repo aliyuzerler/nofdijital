@@ -4,18 +4,20 @@ import { WorkGallery } from "@/components/site/work-gallery";
 import { ReferencesSection } from "@/components/site/references-section";
 import { StatsBand } from "@/components/site/stats-band";
 import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, getStatsSection, toPostItems } from "@/server/services/repositories";
+import { getPublicSettings } from "@/server/services/settings";
 import { GALLERY, SITE } from "@/content/reference-data";
 
 const CLS = ["s7", "s5", "s5", "s7"];
 
 export default async function HomePage() {
-  const [sections, services, steps, galleryItems, posts, statsSection] = await Promise.all([
+  const [sections, services, steps, galleryItems, posts, statsSection, settings] = await Promise.all([
     getHomeSections(),
     getServices(),
     getProcessSteps(),
     getGalleryItems(),
     getPublishedPosts(4),
     getStatsSection(),
+    getPublicSettings(),
   ]);
 
   const hero = sections.hero?.body ?? {};
@@ -36,7 +38,22 @@ export default async function HomePage() {
     { mediaKey: "gallery/gallery-14.webp", alt: "Takım çekimi", cls: "a1" },
     { mediaKey: "gallery/gallery-13.webp", alt: "Takım bütünlüğü", cls: "a2" },
   ];
-  const contactInfo = (contact.info as Array<{ icon: string; text: string }> | undefined) ?? SITE.contactInfo;
+  // İletişim bilgileri: önce admin > Genel Ayarlar (site_settings); orada değer
+  // yoksa bölümün DB gövdesindeki info dizisi, o da yoksa referans liste kullanılır.
+  const settingsInfo = [
+    settings.phone ? { icon: "ph", text: settings.phone } : null,
+    settings.whatsappNumber ? { icon: "wa", text: settings.whatsappNumber } : null,
+    settings.email ? { icon: "mail", text: settings.email } : null,
+  ].filter((v): v is { icon: string; text: string } => v !== null);
+  const contactInfo =
+    settingsInfo.length > 0
+      ? settingsInfo
+      : ((contact.info as Array<{ icon: string; text: string }> | undefined) ?? SITE.contactInfo);
+  const socialLinks = [
+    { icon: "ig", label: "Instagram", href: settings.social.instagram || "/#iletisim" },
+    { icon: "in", label: "LinkedIn", href: settings.social.linkedin || "/#iletisim" },
+    { icon: "yt", label: "YouTube", href: settings.social.youtube || "/#iletisim" },
+  ];
   const postItems = toPostItems(posts);
 
   // İstatistik bandı: admin panelinden yönetilir (page_sections: stats → bodyJson).
@@ -128,7 +145,11 @@ export default async function HomePage() {
       </section>
 
       {/* ÇALIŞMALAR — sticky galeri */}
-      <WorkGallery items={galleryItems} />
+      <WorkGallery
+        items={galleryItems}
+        eyebrow={sections.gallery?.eyebrow ?? undefined}
+        title={sections.gallery?.title ?? undefined}
+      />
 
       {/* İSTATİSTİK BANDI — sayaçlı (Referansların üstü, admin'den yönetilir) */}
       {showStats ? (
@@ -260,21 +281,18 @@ export default async function HomePage() {
               ))}
             </div>
             <div className="so" data-r>
-              <a href="/#iletisim" aria-label="Instagram (örnek)">
-                <svg className="i">
-                  <use href="#i-ig" />
-                </svg>
-              </a>
-              <a href="/#iletisim" aria-label="LinkedIn (örnek)">
-                <svg className="i">
-                  <use href="#i-in" />
-                </svg>
-              </a>
-              <a href="/#iletisim" aria-label="YouTube (örnek)">
-                <svg className="i">
-                  <use href="#i-yt" />
-                </svg>
-              </a>
+              {socialLinks.map((s) => (
+                <a
+                  key={s.icon}
+                  href={s.href}
+                  aria-label={s.label}
+                  {...(s.href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {})}
+                >
+                  <svg className="i">
+                    <use href={`#i-${s.icon}`} />
+                  </svg>
+                </a>
+              ))}
             </div>
           </div>
           <aside className="ptn" data-r aria-label="Partnerlerimiz">

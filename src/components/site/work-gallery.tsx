@@ -10,7 +10,16 @@ import type { GalleryItemView } from "@/server/services/repositories";
  * scroll ile senkron yatay kaydırma, ilerleme göstergesi, lightbox tetiği.
  * Görseller DB'den (portfolio_images) gelir; fallback GALLERY sabiti.
  */
-export function WorkGallery({ items }: { items?: GalleryItemView[] }) {
+export function WorkGallery({
+  items,
+  eyebrow,
+  title,
+}: {
+  items?: GalleryItemView[];
+  /** Ana sayfa bölüm başlığı — admin > Ana Sayfa > Galeri kartından gelir. */
+  eyebrow?: string;
+  title?: string;
+}) {
   const secRef = useRef<HTMLElement>(null);
   const stkRef = useRef<HTMLDivElement>(null);
   const gtRef = useRef<HTMLDivElement>(null);
@@ -119,8 +128,8 @@ export function WorkGallery({ items }: { items?: GalleryItemView[] }) {
     <section className="work" id="calismalar" ref={secRef}>
       <div className="stk" id="stk" ref={stkRef}>
         <div className="wh1">
-          <span className="eyb">Çalışmalarımız</span>
-          <h2>Stüdyo duvarı</h2>
+          <span className="eyb">{eyebrow ?? "Çalışmalarımız"}</span>
+          <h2>{title ?? "Stüdyo duvarı"}</h2>
         </div>
         <div className="wpg">
           <span id="wn" ref={wnRef}>
