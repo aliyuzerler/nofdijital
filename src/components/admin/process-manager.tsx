@@ -79,7 +79,7 @@ export function ProcessManager({ rows }: { rows: ProcessRow[] }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={openCreate} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+        <Button onClick={openCreate} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
           <Plus className="h-4 w-4" /> Yeni adım
         </Button>
       </div>
@@ -156,7 +156,7 @@ export function ProcessManager({ rows }: { rows: ProcessRow[] }) {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={3}
-                className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#8254D8]"
+                className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#9335FF]"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -176,7 +176,7 @@ export function ProcessManager({ rows }: { rows: ProcessRow[] }) {
             <Button variant="outline" onClick={() => (setTarget(null), setCreating(false))}>
               Vazgeç
             </Button>
-            <Button onClick={() => void save()} disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+            <Button onClick={() => void save()} disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
             </Button>
           </DialogFooter>

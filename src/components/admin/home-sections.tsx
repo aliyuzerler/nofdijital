@@ -208,7 +208,7 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
               value={lead}
               onChange={(e) => setLead(e.target.value)}
               rows={3}
-              className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#8254D8]"
+              className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#9335FF]"
             />
           </div>
         ) : null}
@@ -228,7 +228,7 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
 
         <Separator />
         <div className="flex justify-end">
-          <Button onClick={() => void save()} disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+          <Button onClick={() => void save()} disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
           </Button>
         </div>

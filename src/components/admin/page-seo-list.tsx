@@ -53,7 +53,7 @@ function PageSeoForm({ row }: { row: PageSeoRow }) {
               value={seoDescription}
               onChange={(e) => setSeoDescription(e.target.value)}
               rows={2}
-              className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#8254D8]"
+              className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#9335FF]"
               placeholder="Arama sonucu snippet açıklaması"
             />
           </div>
@@ -62,7 +62,7 @@ function PageSeoForm({ row }: { row: PageSeoRow }) {
             <Input id={`seo-canonical-${row.id}`} value={canonicalUrl} onChange={(e) => setCanonicalUrl(e.target.value)} placeholder="https://… (boş bırakılabilir)" />
           </div>
           <div className="flex justify-end">
-            <Button type="submit" disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+            <Button type="submit" disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
             </Button>
           </div>

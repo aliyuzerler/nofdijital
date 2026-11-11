@@ -58,7 +58,7 @@ function StatusBadge({ status }: { status: BlogTableRow["status"] }) {
     status === "published"
       ? "border-emerald-300 bg-emerald-50 text-emerald-700"
       : status === "draft"
-        ? "border-[#8254D8]/40 bg-[#8254D8]/10 text-[#7143C2]"
+        ? "border-[#9335FF]/40 bg-[#9335FF]/10 text-[#8426F2]"
         : status === "scheduled"
           ? "border-amber-300 bg-amber-50 text-amber-700"
           : "border-neutral-200 bg-neutral-50 text-neutral-500";

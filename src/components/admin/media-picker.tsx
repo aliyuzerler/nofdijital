@@ -80,8 +80,8 @@ export function MediaPickerDialog({
                   onOpenChange(false);
                 }}
                 className={cn(
-                  "group overflow-hidden rounded-lg border border-neutral-200 text-left transition-colors hover:border-[#8254D8]",
-                  "focus-visible:outline-2 focus-visible:outline-[#8254D8]",
+                  "group overflow-hidden rounded-lg border border-neutral-200 text-left transition-colors hover:border-[#9335FF]",
+                  "focus-visible:outline-2 focus-visible:outline-[#9335FF]",
                 )}
               >
                 { }

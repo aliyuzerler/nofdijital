@@ -39,46 +39,85 @@ interface NavItem {
   ownerOnly?: boolean;
 }
 
-const NAV: NavItem[] = [
-  { href: "/admin", label: "Panel", icon: LayoutDashboard },
-  { href: "/admin/blog", label: "Blog", icon: Newspaper },
-  { href: "/admin/media", label: "Medya", icon: ImageIcon },
-  { href: "/admin/pages/home", label: "Ana Sayfa", icon: LayoutTemplate },
-  { href: "/admin/services", label: "Hizmetler", icon: Briefcase },
-  { href: "/admin/process", label: "Süreç", icon: ListOrdered },
-  { href: "/admin/portfolio", label: "Portfolyo", icon: Images },
-  { href: "/admin/messages", label: "Mesajlar", icon: Inbox },
-  { href: "/admin/navigation", label: "Menü", icon: Menu, ownerOnly: true },
-  { href: "/admin/settings/general", label: "Genel Ayarlar", icon: Settings, ownerOnly: true },
-  { href: "/admin/settings/seo", label: "SEO", icon: Search, ownerOnly: true },
-  { href: "/admin/audit-log", label: "Denetim Kaydı", icon: ScrollText, ownerOnly: true },
-];
-
-function navFor(role: "owner" | "editor"): NavItem[] {
-  return NAV.filter((n) => !n.ownerOnly || role === "owner");
+interface NavSection {
+  label: string | null;
+  items: NavItem[];
 }
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    label: null,
+    items: [{ href: "/admin", label: "Panel", icon: LayoutDashboard }],
+  },
+  {
+    label: "İçerik",
+    items: [
+      { href: "/admin/blog", label: "Blog", icon: Newspaper },
+      { href: "/admin/media", label: "Medya", icon: ImageIcon },
+      { href: "/admin/messages", label: "Mesajlar", icon: Inbox },
+    ],
+  },
+  {
+    label: "Site",
+    items: [
+      { href: "/admin/pages/home", label: "Ana Sayfa", icon: LayoutTemplate },
+      { href: "/admin/services", label: "Hizmetler", icon: Briefcase },
+      { href: "/admin/process", label: "Süreç", icon: ListOrdered },
+      { href: "/admin/portfolio", label: "Portfolyo", icon: Images },
+      { href: "/admin/navigation", label: "Menü", icon: Menu, ownerOnly: true },
+    ],
+  },
+  {
+    label: "Sistem",
+    items: [
+      { href: "/admin/settings/general", label: "Genel Ayarlar", icon: Settings, ownerOnly: true },
+      { href: "/admin/settings/seo", label: "SEO", icon: Search, ownerOnly: true },
+      { href: "/admin/audit-log", label: "Denetim Kaydı", icon: ScrollText, ownerOnly: true },
+    ],
+  },
+];
 
 function NavLinks({ role, onNavigate }: { role: "owner" | "editor"; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Yönetim menüsü" className="flex flex-col gap-1">
-      {navFor(role).map((item) => {
-        const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
-        const Icon = item.icon;
+    <nav aria-label="Yönetim menüsü" className="flex flex-col">
+      {NAV_SECTIONS.map((section, si) => {
+        const items = section.items.filter((n) => !n.ownerOnly || role === "owner");
+        if (!items.length) return null;
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
-              active ? "bg-[#8254D8]/20 font-medium text-white" : "text-neutral-400 hover:bg-white/5 hover:text-neutral-100",
-            )}
-          >
-            <Icon className={cn("h-4 w-4 shrink-0", active ? "text-[#B18CFF]" : "text-neutral-500")} />
-            {item.label}
-          </Link>
+          <div key={section.label ?? `s${si}`}>
+            {section.label ? (
+              <p className="px-3 pb-1.5 pt-5 text-[10px] font-bold uppercase tracking-[0.16em] text-neutral-500">
+                {section.label}
+              </p>
+            ) : null}
+            <div className="flex flex-col gap-0.5">
+              {items.map((item) => {
+                const active =
+                  item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                      active
+                        ? "bg-[#9335FF]/15 font-semibold text-white shadow-[inset_2px_0_0_#9335FF]"
+                        : "font-medium text-neutral-400 hover:bg-white/5 hover:text-neutral-100",
+                    )}
+                  >
+                    <Icon
+                      className={cn("h-4 w-4 shrink-0", active ? "text-[#B385FF]" : "text-neutral-500")}
+                    />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         );
       })}
     </nav>
@@ -88,7 +127,7 @@ function NavLinks({ role, onNavigate }: { role: "owner" | "editor"; onNavigate?:
 function Brand() {
   return (
     <div className="flex items-center gap-2.5 px-2 py-1">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#8254D8] text-sm font-bold text-white" aria-hidden>
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#9335FF] text-sm font-bold text-white" aria-hidden>
         N
       </span>
       <div className="leading-tight">
@@ -139,7 +178,7 @@ function MobileMenu({ user, open, onOpenChange }: { user: ShellUser; open: boole
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="flex w-72 flex-col gap-6 bg-[#161022] px-4 py-6">
+      <SheetContent side="left" className="flex w-72 flex-col gap-6 bg-[#15131b] px-4 py-6">
         <SheetTitle className="sr-only">Yönetim menüsü</SheetTitle>
         <Brand />
         <div className="admin-scroll flex-1 overflow-y-auto">
@@ -158,7 +197,7 @@ export function AdminShell({ user, children }: { user: ShellUser; children: Reac
   return (
     <div className="admin-root min-h-screen bg-neutral-100 text-neutral-900">
       {/* Masaüstü sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col gap-6 bg-[#161022] px-4 py-6 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col gap-6 bg-[#15131b] px-4 py-6 lg:flex">
         <Brand />
         <div className="admin-scroll flex-1 overflow-y-auto">
           <NavLinks role={user.role} />
@@ -171,7 +210,7 @@ export function AdminShell({ user, children }: { user: ShellUser; children: Reac
           <MobileMenu user={user} open={mobileOpen} onOpenChange={setMobileOpen} />
           <p className="text-sm font-medium text-neutral-500">NOF DİJİTAL yönetim</p>
           <div className="ml-auto flex items-center gap-2">
-            <Badge variant="outline" className="border-[#8254D8]/40 text-[#7143C2]">
+            <Badge variant="outline" className="border-[#9335FF]/40 text-[#8426F2]">
               {user.role === "owner" ? "Sahip" : "Editör"}
             </Badge>
             <Button asChild variant="outline" size="sm">

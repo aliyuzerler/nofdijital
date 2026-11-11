@@ -39,8 +39,8 @@ export function GeneralSettingsForm({ initial }: { initial: GeneralSettings }) {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="wa">WhatsApp numarası</Label>
-            <Input id="wa" value={form.whatsappNumber} onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })} placeholder="905xxxxxxxxx" />
+            <Label htmlFor="wa-number">WhatsApp numarası</Label>
+            <Input id="wa-number" value={form.whatsappNumber} onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })} placeholder="905xxxxxxxxx" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Telefon</Label>
@@ -78,7 +78,7 @@ export function GeneralSettingsForm({ initial }: { initial: GeneralSettings }) {
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+        <Button type="submit" disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
         </Button>
       </div>

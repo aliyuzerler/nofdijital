@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Loader2, Pencil, Search, Trash2, UploadCloud } from "lucide-react";
+import { Copy, Image as ImageIcon, Loader2, Pencil, Search, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { deleteMedia, updateMediaMeta, type MediaRow } from "@/features/admin/media/actions";
 import { formatTrDateSafe } from "@/lib/format";
@@ -131,17 +131,17 @@ export function MediaManager({ initialRows }: { initialRows: MediaRow[] }) {
           void upload(e.dataTransfer.files);
         }}
         className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-          dragOver ? "border-[#8254D8] bg-[#8254D8]/5" : "border-neutral-300 bg-white hover:border-[#8254D8]/60"
+          dragOver ? "border-[#9335FF] bg-[#9335FF]/5" : "border-neutral-300 bg-white hover:border-[#9335FF]/60"
         }`}
       >
         {uploading ? (
           <>
-            <Loader2 className="h-6 w-6 animate-spin text-[#8254D8]" aria-hidden />
+            <Loader2 className="h-6 w-6 animate-spin text-[#9335FF]" aria-hidden />
             <p className="text-sm font-medium text-neutral-700">{uploadCount} dosya yükleniyor…</p>
           </>
         ) : (
           <>
-            <UploadCloud className="h-6 w-6 text-[#8254D8]" aria-hidden />
+            <UploadCloud className="h-6 w-6 text-[#9335FF]" aria-hidden />
             <p className="text-sm font-medium text-neutral-700">Dosyaları buraya sürükleyin veya tıklayın</p>
             <p className="text-xs text-neutral-400">JPEG, PNG, WebP, AVIF · en fazla 10 MB · aynı içerik tekilleştirilir</p>
           </>
@@ -164,7 +164,19 @@ export function MediaManager({ initialRows }: { initialRows: MediaRow[] }) {
 
       {/* Grid */}
       {rows.length === 0 ? (
-        <p className="py-12 text-center text-sm text-neutral-500">Medya bulunamadı.</p>
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-200 bg-white/60 py-14 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#9335FF]/10" aria-hidden>
+            <ImageIcon className="h-5 w-5 text-[#9335FF]" />
+          </div>
+          <p className="text-sm font-semibold text-neutral-700">
+            {query ? "Aramanızla eşleşen medya bulunamadı." : "Henüz medya yok."}
+          </p>
+          <p className="max-w-xs text-xs leading-relaxed text-neutral-400">
+            {query
+              ? "Farklı bir dosya adı veya alt metinle aramayı deneyin."
+              : "Yukarıdaki alana dosya sürükleyin veya tıklayarak yükleyin; yüklediğiniz görseller burada listelenir."}
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {rows.map((r) => (
@@ -236,7 +248,7 @@ export function MediaManager({ initialRows }: { initialRows: MediaRow[] }) {
             <Button variant="outline" onClick={() => setEditTarget(null)}>
               Vazgeç
             </Button>
-            <Button className="bg-[#8254D8] text-white hover:bg-[#7143C2]" onClick={() => void saveMeta()}>
+            <Button className="bg-[#9335FF] text-white hover:bg-[#8426F2]" onClick={() => void saveMeta()}>
               Kaydet
             </Button>
           </DialogFooter>

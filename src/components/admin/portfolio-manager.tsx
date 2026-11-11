@@ -136,7 +136,7 @@ export function PortfolioManager({ rows }: { rows: GalleryRow[] }) {
             <Button variant="outline" onClick={() => setTarget(null)}>
               Vazgeç
             </Button>
-            <Button onClick={() => void save()} disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+            <Button onClick={() => void save()} disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
             </Button>
           </DialogFooter>

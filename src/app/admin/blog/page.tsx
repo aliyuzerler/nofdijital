@@ -49,7 +49,7 @@ export default async function AdminBlogPage() {
           <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Blog</h1>
           <p className="mt-1 text-sm text-neutral-500">Yazıları yönetin; yeni içerik ekleyin.</p>
         </div>
-        <Button asChild className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+        <Button asChild className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
           <Link href="/admin/blog/new">
             <Plus className="h-4 w-4" aria-hidden /> Yeni Yazı
           </Link>

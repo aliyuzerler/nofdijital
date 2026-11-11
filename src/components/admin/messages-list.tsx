@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 function StatusBadge({ status }: { status: MessageRow["status"] }) {
   if (status === "new") {
     return (
-      <Badge variant="outline" className="border-[#8254D8]/40 bg-[#8254D8]/10 text-[#7143C2]">
+      <Badge variant="outline" className="border-[#9335FF]/40 bg-[#9335FF]/10 text-[#8426F2]">
         Yeni
       </Badge>
     );

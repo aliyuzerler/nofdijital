@@ -74,7 +74,7 @@ export default async function AdminAuditLogPage() {
                       <p className="text-xs text-neutral-400">{r.actorId ?? ""}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-[#8254D8]/30 bg-[#8254D8]/5 text-[#7143C2]">
+                      <Badge variant="outline" className="border-[#9335FF]/30 bg-[#9335FF]/5 text-[#8426F2]">
                         {ACTION_LABEL[r.action] ?? r.action}
                       </Badge>
                     </TableCell>

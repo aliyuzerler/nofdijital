@@ -59,9 +59,9 @@ export default async function AdminDashboardPage() {
           const Icon = m.icon;
           return (
             <Link key={m.label} href={m.href} className="group">
-              <Card className="h-full border-neutral-200 transition-colors group-hover:border-[#8254D8]/50">
+              <Card className="h-full border-neutral-200 transition-colors group-hover:border-[#9335FF]/50">
                 <CardContent className="flex flex-col gap-2 p-4">
-                  <Icon className="h-4 w-4 text-[#8254D8]" aria-hidden />
+                  <Icon className="h-4 w-4 text-[#9335FF]" aria-hidden />
                   <p className="text-2xl font-semibold tabular-nums text-neutral-900">{m.value}</p>
                   <p className="text-xs text-neutral-500">{m.label}</p>
                 </CardContent>
@@ -74,7 +74,7 @@ export default async function AdminDashboardPage() {
       <Card className="border-neutral-200">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-base font-semibold text-neutral-900">Son mesajlar</CardTitle>
-          <Link href="/admin/messages" className="inline-flex items-center gap-1 text-sm font-medium text-[#7143C2] hover:underline">
+          <Link href="/admin/messages" className="inline-flex items-center gap-1 text-sm font-medium text-[#8426F2] hover:underline">
             Tümü <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
         </CardHeader>
@@ -97,7 +97,7 @@ export default async function AdminDashboardPage() {
                       variant="outline"
                       className={
                         m.status === "new"
-                          ? "border-[#8254D8]/40 bg-[#8254D8]/10 text-[#7143C2]"
+                          ? "border-[#9335FF]/40 bg-[#9335FF]/10 text-[#8426F2]"
                           : m.status === "read"
                             ? "border-neutral-300 text-neutral-500"
                             : "border-neutral-200 bg-neutral-50 text-neutral-400"

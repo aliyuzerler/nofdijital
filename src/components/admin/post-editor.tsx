@@ -80,7 +80,7 @@ function ToolbarButton({
       disabled={disabled}
       aria-label={label}
       aria-pressed={active}
-      className={cn("h-8 w-8 p-0", active && "bg-[#8254D8]/15 text-[#7143C2]")}
+      className={cn("h-8 w-8 p-0", active && "bg-[#9335FF]/15 text-[#8426F2]")}
     >
       {children}
     </Button>
@@ -229,7 +229,7 @@ export function PostEditor({
             {initial ? "Kaydet" : "Taslak olarak kaydet"}
           </Button>
           {!isPublished ? (
-            <Button disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]" onClick={() => void persist("published")}>
+            <Button disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]" onClick={() => void persist("published")}>
               Yayınla
             </Button>
           ) : (
@@ -341,7 +341,7 @@ export function PostEditor({
                   id="category"
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#8254D8]"
+                  className="h-9 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#9335FF]"
                 >
                   <option value="">Kategori seçilmedi</option>
                   {categories.map((c) => (

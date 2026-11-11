@@ -80,7 +80,7 @@ export function NavigationManager({ rows }: { rows: NavRow[] }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={openCreate} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+        <Button onClick={openCreate} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
           <Plus className="h-4 w-4" /> Yeni öğe
         </Button>
       </div>
@@ -184,7 +184,7 @@ export function NavigationManager({ rows }: { rows: NavRow[] }) {
             <Button variant="outline" onClick={() => (setTarget(null), setCreating(false))}>
               Vazgeç
             </Button>
-            <Button onClick={() => void save()} disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+            <Button onClick={() => void save()} disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
             </Button>
           </DialogFooter>

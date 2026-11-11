@@ -135,7 +135,7 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={3}
-                className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#8254D8]"
+                className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#9335FF]"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -205,7 +205,7 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
             <Button variant="outline" onClick={() => setTarget(null)}>
               Vazgeç
             </Button>
-            <Button onClick={() => void save()} disabled={saving} className="bg-[#8254D8] text-white hover:bg-[#7143C2]">
+            <Button onClick={() => void save()} disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Kaydet
             </Button>
           </DialogFooter>
