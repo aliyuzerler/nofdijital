@@ -8,7 +8,6 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Images,
-  Inbox,
   LayoutDashboard,
   LayoutTemplate,
   ListOrdered,
@@ -54,7 +53,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/blog", label: "Blog", icon: Newspaper },
       { href: "/admin/media", label: "Medya", icon: ImageIcon },
-      { href: "/admin/messages", label: "Mesajlar", icon: Inbox },
     ],
   },
   {
