@@ -1,6 +1,55 @@
 /* Admin paneli izole stilleri — public site CSS'i (nof.css) body stillerini etkileyebilir;
    admin kökü kendi renk şemasını zorlar. */
 
+/* ---- nof.css sızıntı yalıtımı (2026-11) ----
+   nof.css'in KATMANSIZ element kuralları (*, a, button, h1-h4, input/select/textarea)
+   Tailwind v4'ün @layer utilities kurallarını specificity'den bağımsız ezer:
+   unlayered > @layer. Sonuç: admin'de link renkleri siyahlaşır (koyu sidebar'da
+   okunmaz), buton/nesne padding'leri sıfırlanır (içerik sidebar altında kalır),
+   buton arka planları kaybolur, formlar site stiline döner.
+   Çözüm: admin oturumu boyunca bu özellikleri revert-layer ile Tailwind
+   katmanlarına geri döndür. nof.css'e dokunulmaz → public site etkilenmez.
+   Kapsam: body:has(.admin-root) — .admin-root İÇİNDEKİ akış içeriğini VE Radix
+   portallarını (Sheet/Dialog/Dropdown/Sonner) kapsar; portallar body'e bağlanır.
+   Element bazlı kurallar (:where(a) vs.) `*` kuralından spesifik olsun diye ayrıdır. */
+body:has(.admin-root) :where(*):not(.alx-root *) {
+  margin: revert-layer;
+  padding: revert-layer;
+}
+body:has(.admin-root) :where(a):not(.alx-root *) {
+  color: revert-layer;
+  text-decoration: revert-layer;
+}
+body:has(.admin-root) :where(button):not(.alx-root *) {
+  font: revert-layer;
+  cursor: revert-layer;
+  border: revert-layer;
+  background: revert-layer;
+  color: revert-layer;
+}
+body:has(.admin-root) :where(h1, h2, h3, h4, h5, h6):not(.alx-root *) {
+  font-family: revert-layer;
+  line-height: revert-layer;
+  letter-spacing: revert-layer;
+  font-weight: revert-layer;
+}
+body:has(.admin-root) :where(input, select, textarea):not(.alx-root *) {
+  font: revert-layer;
+  font-size: revert-layer;
+  color: revert-layer;
+  background: revert-layer;
+  border: revert-layer;
+  border-radius: revert-layer;
+  padding: revert-layer;
+  width: revert-layer;
+  outline: revert-layer;
+  transition: revert-layer;
+}
+body:has(.admin-root) :where(textarea):not(.alx-root *) {
+  min-height: revert-layer;
+  resize: revert-layer;
+}
+
 .admin-root,
 .admin-root body {
   background-color: #f5f5f5;
@@ -65,7 +114,7 @@
   margin: 0.5em 0;
 }
 .nof-editor .ProseMirror blockquote {
-  border-left: 3px solid #8254d8;
+  border-left: 3px solid #9335FF;
   padding-left: 0.9rem;
   color: #52525b;
   font-style: italic;
@@ -83,7 +132,7 @@
   margin: 0.6em 0;
 }
 .nof-editor .ProseMirror a {
-  color: #7143c2;
+  color: #8426F2;
   text-decoration: underline;
 }
 .nof-editor .ProseMirror p.is-empty::before {
