@@ -9,6 +9,13 @@ import { GALLERY, SITE } from "@/content/reference-data";
 
 const CLS = ["s7", "s5", "s5", "s7"];
 
+/**
+ * force-dynamic: İçerik tamamen DB'den beslenir (admin paneli düzenlemeleri).
+ * Statik prerender yapılsaydı admin'de yapılan düzenlemeler siteye yansıması
+ * için yeniden deploy gerekirdi (kullanıcı raporu: "düzenler görüntülenmiyor").
+ */
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [sections, services, steps, galleryItems, posts, statsSection, settings] = await Promise.all([
     getHomeSections(),
@@ -302,7 +309,7 @@ export default async function HomePage() {
             </h3>
             <div className="ptn-grid">
               <div className="ptn-tile me">
-                <img src="/assets/logo.png" alt="NOF Dijital" />
+                <img src={settings.logoUrl || "/assets/logo.png"} alt="NOF Dijital" />
               </div>
               <div className="ptn-tile">
                 <img src="/assets/partners/meta.svg" alt="Meta Business" />

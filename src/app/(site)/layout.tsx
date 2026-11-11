@@ -52,7 +52,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <>
       <IconSprite />
       <CanvasBackground />
-      <SiteHeader nav={nav} />
+      <SiteHeader nav={nav} logoUrl={settings.logoUrl} />
       <RevealProvider />
       <main>{children}</main>
       <SiteFooter settings={settings} nav={nav} services={services} />

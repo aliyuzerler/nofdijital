@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GALLERY, SERVICES, SITE } from "@/content/reference-data";
+import { LogoHomeLink } from "./logo-home-link";
 import type { PublicSettings } from "@/server/services/settings";
 import type { ServiceView } from "@/server/services/repositories";
 
@@ -52,9 +53,7 @@ export function SiteFooter({
       <div className="wrap">
         <div className="fg4">
           <div>
-            <Link className="lg" href="/">
-              <img src={GALLERY.logo} alt="NOF DİJİTAL" />
-            </Link>
+            <LogoHomeLink className="lg" src={settings.logoUrl || GALLERY.logo} />
             <p>Yaratıcı prodüksiyon ve performans odaklı dijital pazarlamayı tek çatıda buluşturan ajans.</p>
             <div className="so">
               {socials.map((s) => (

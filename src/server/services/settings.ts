@@ -14,6 +14,8 @@ export interface PublicSettings {
   email: string;
   address: string;
   social: { instagram: string; linkedin: string; youtube: string };
+  /** Site logosu (admin > Genel Ayarlar'dan yüklenir); boşsa statik marka logosu kullanılır. */
+  logoUrl: string;
 }
 
 const DEFAULTS: PublicSettings = {
@@ -22,6 +24,7 @@ const DEFAULTS: PublicSettings = {
   email: "",
   address: "",
   social: { instagram: "", linkedin: "", youtube: "" },
+  logoUrl: "",
 };
 
 export async function getPublicSettings(): Promise<PublicSettings> {

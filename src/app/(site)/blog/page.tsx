@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { BlogArchive } from "@/components/site/blog-archive";
 import { getPublishedPosts, toPostItems } from "@/server/services/repositories";
 
+// İçerik DB'den beslenir; admin düzenlemeleri anında yayında görün (bkz. ana sayfa).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Blog — NOF DİJİTAL",
   description: "Sosyal medya, reklam yönetimi ve prodüksiyon üzerine kısa, uygulanabilir notlar.",

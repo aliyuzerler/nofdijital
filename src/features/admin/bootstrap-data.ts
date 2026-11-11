@@ -298,10 +298,12 @@ async function seedNavigation(): Promise<void> {
   const db = await getDb();
   const existing = await db.select({ id: navigationItems.id }).from(navigationItems).limit(1);
   if (existing.length) return;
+  // Referanslarımız dahil (header/footer varsayılan menüsüyle aynı liste).
   const NAV = [
     { label: "Ana Sayfa", href: "/" },
     { label: "Hizmetler", href: "/#hizmetler" },
     { label: "Çalışmalarımız", href: "/#calismalar" },
+    { label: "Referanslarımız", href: "/#referanslar" },
     { label: "Hakkımızda", href: "/#hakkimizda" },
     { label: "Blog", href: "/blog" },
     { label: "İletişim", href: "/#iletisim" },

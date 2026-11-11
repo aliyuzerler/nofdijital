@@ -1,11 +1,27 @@
 import "server-only";
 import type { StorageProvider, StorageObjectMeta } from "./provider";
-import type { PutBlobResult } from "@vercel/blob";
 
 /**
- * Vercel Blob adapter (production). BLOB_READ_WRITE_TOKEN yalnızca server runtime'da;
- * token yoksa provider seçilmez (fallback local).
+ * Vercel Blob adapter (production). İki kimlik modu:
+ *  1) klasik BLOB_READ_WRITE_TOKEN,
+ *  2) OIDC — BLOB_STORE_ID + Vercel'in çalışma anında otomatik sağladığı VERCEL_OIDC_TOKEN.
+ *
+ * Mağaza erişim türü desteği (private/public):
+ *  - Public mağazada put access:'public' ile yazılır.
+ *  - Private mağazada public put "Cannot use public access on a private store"
+ *    hatası verir; adapter bunu yakalar ve access:'private' ile yeniden dener
+ *    (süreç ömründe hatırlanır). Private blob'lar yalnızca sunucu tarafında
+ *    kimlikle okunabilir → site, içeriği /api/media/<key> proxy rotasından sunar.
+ *  - publicUrl her durumda aynı kökten (/api/media/<key>) verilir: CSP 'img-src self'
+ *    uyumlu, URL kalıcı (imzalı/geçici URL'e bağımlı değil), tarayıcı immutable cache.
  */
+const storeState = globalThis as unknown as { nofBlobPrivate?: boolean };
+
+function isPrivateStoreError(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e);
+  return /private store|public access/i.test(msg);
+}
+
 export class VercelBlobProvider implements StorageProvider {
   readonly name = "vercel-blob";
 
@@ -21,20 +37,49 @@ export class VercelBlobProvider implements StorageProvider {
 
   async upload(key: string, data: Buffer, mimeType: string): Promise<{ key: string; publicUrl: string }> {
     const { put } = await this.sdk();
-    const res: PutBlobResult = await put(key, data, {
-      access: "public",
-      contentType: mimeType,
-      addRandomSuffix: false,
-    });
-    return { key, publicUrl: res.url };
+    if (!storeState.nofBlobPrivate) {
+      try {
+        await put(key, data, { access: "public", contentType: mimeType, addRandomSuffix: false });
+      } catch (e) {
+        if (!isPrivateStoreError(e)) throw e;
+        // Mağaza private erişimle oluşturulmuş: private yazıma otomatik geç.
+        storeState.nofBlobPrivate = true;
+      }
+    }
+    if (storeState.nofBlobPrivate) {
+      await put(key, data, { access: "private", contentType: mimeType, addRandomSuffix: false });
+    }
+    return { key, publicUrl: this.getPublicUrl(key) };
   }
 
   async get(key: string): Promise<Buffer | null> {
-    // Blob public URL üzerinden okunur; sunucu tarafında gerekliyse fetch kullanılır.
-    const url = this.resolveUrl(key);
-    if (!url) return null;
-    const res = await fetch(url).catch(() => null);
-    return res && res.ok ? Buffer.from(await res.arrayBuffer()) : null;
+    if (storeState.nofBlobPrivate) return this.getViaSdk(key);
+    // Public/unknown mağaza: head ile kalıcı URL al, doğrudan oku; olmazsa SDK ile dene.
+    const { head } = await this.sdk();
+    const meta = await head(key).catch(() => null);
+    if (meta?.url) {
+      const res = await fetch(meta.url).catch(() => null);
+      if (res?.ok) return Buffer.from(await res.arrayBuffer());
+    }
+    return this.getViaSdk(key);
+  }
+
+  private async getViaSdk(key: string): Promise<Buffer | null> {
+    try {
+      const { get } = await this.sdk();
+      const res = await get(key, { access: "private" });
+      if (!res || res.statusCode !== 200 || !res.stream) return null;
+      const chunks: Buffer[] = [];
+      const reader = res.stream.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) chunks.push(Buffer.from(value));
+      }
+      return Buffer.concat(chunks);
+    } catch {
+      return null;
+    }
   }
 
   async head(key: string): Promise<StorageObjectMeta | null> {
@@ -55,15 +100,19 @@ export class VercelBlobProvider implements StorageProvider {
 
   async copy(fromKey: string, toKey: string): Promise<{ key: string; publicUrl: string }> {
     const { copy } = await this.sdk();
-    const res = await copy(fromKey, toKey, { access: "public", addRandomSuffix: false });
-    return { key: toKey, publicUrl: res.url };
-  }
-
-  private resolveUrl(key: string): string | null {
-    return process.env.BLOB_PUBLIC_BASE_URL ? `${process.env.BLOB_PUBLIC_BASE_URL}/${key}` : null;
+    const access = storeState.nofBlobPrivate ? "private" : "public";
+    try {
+      await copy(fromKey, toKey, { access, addRandomSuffix: false });
+    } catch (e) {
+      if (!isPrivateStoreError(e)) throw e;
+      storeState.nofBlobPrivate = true;
+      await copy(fromKey, toKey, { access: "private", addRandomSuffix: false });
+    }
+    return { key: toKey, publicUrl: this.getPublicUrl(toKey) };
   }
 
   getPublicUrl(key: string): string {
-    return `${process.env.BLOB_PUBLIC_BASE_URL ?? ""}/${key}`;
+    // Her zaman site-içi proxy: kalıcı URL, CSP self uyumu, immutable tarayıcı cache.
+    return `/api/media/${key}`;
   }
 }

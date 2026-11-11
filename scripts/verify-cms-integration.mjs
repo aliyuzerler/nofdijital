@@ -2,10 +2,13 @@
  * Admin CMS entegrasyon E2E testi (taze boş DB — üretim simülasyonu).
  * Kapsam:
  *  1) Ana Sayfa sekmesi: boş kayıt uyarısı yok, 8 bölüm kartı otomatik oluşur
- *  2) Hizmetler: 7 hizmet otomatik görünür + ekle/düzenle/sil
+ *  2) Hizmetler: 7 hizmet otomatik görünür + ekle/düzenle/sil + POPUP DÜZENLEME ROUND-TRIP
  *  3) Portfolyo: 14 görsel otomatik görünür + ekle/çıkar/değiştir + duvar sayacı
  *  4) Medya: 15 varlık + küçük ve büyük (>4.5MB) dosya yükleme
  *  5) Site paritesi: hizmetler/duvar/sayaç admin'den besleniyor
+ *  6) Menü: açılır listeden "/#referanslar" öğesi + header yönlendirme/kaydırma testleri
+ *  7) Logo: Genel Ayarlar'dan logo yükle → Kaydet → sitede aktif; varsayılana dön
+ *  8) Süreç: popup düzenleme round-trip
  * Çalıştırma: sunucu ayaktayken `bun scripts/verify-cms-integration.mjs`
  */
 import { chromium } from "playwright";
@@ -27,6 +30,10 @@ function check(name, cond, extra = "") {
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 page.setDefaultTimeout(20000);
+
+/* Yakalanmayan JS hataları (popup diyaloğu boş/broken render taraması) */
+const pageErrors = [];
+page.on("pageerror", (e) => pageErrors.push(String(e?.message ?? e)));
 
 /* ---- login ---- */
 await page.goto(BASE + "/admin/login", { waitUntil: "networkidle" });
@@ -91,6 +98,42 @@ await page.waitForTimeout(2500);
 svcRows = await page.locator("table tbody tr").count();
 check("hizmetler: silme sonrası 7 satır", svcRows === 7, `rows=${svcRows}`);
 await page.screenshot({ path: SHOT + "/cms-services.png" });
+
+// --- POPUP DÜZENLEME ROUND-TRIP (Sorun 3: "düzenler görüntülenmiyor") ---
+// Mevcut hizmetin diyaloğu mevcut değerlerle AÇILMALI; kaydedilen düzenleme
+// yeniden açıldığında GÖRÜNMELİ; siteye de yansımalı (force-dynamic).
+const SVC_TITLE_ORIG = "Reklam Performans Analizi";
+const SVC_TITLE_NEW = "Performans Analizi E2E";
+await page.reload({ waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+await page.getByRole("button", { name: `${SVC_TITLE_ORIG} düzenle` }).click();
+await page.waitForTimeout(500);
+const svcDlgVal1 = await page.inputValue("#svc-title");
+check("hizmetler popup: mevcut değer görüntüleniyor", svcDlgVal1 === SVC_TITLE_ORIG, `val=${svcDlgVal1}`);
+await page.fill("#svc-title", SVC_TITLE_NEW);
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.getByRole("button", { name: `${SVC_TITLE_NEW} düzenle` }).click();
+await page.waitForTimeout(500);
+const svcDlgVal2 = await page.inputValue("#svc-title");
+check("hizmetler popup: kaydedilen düzenleme tekrar görüntüleniyor", svcDlgVal2 === SVC_TITLE_NEW, `val=${svcDlgVal2}`);
+await page.getByRole("button", { name: "Vazgeç" }).click();
+await page.waitForTimeout(400);
+// siteye yansıma (ana sayfa force-dynamic)
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.waitForTimeout(800);
+const svcSiteBody = await page.textContent("body");
+check("site: hizmet düzenlemesi anında yayında", svcSiteBody.includes(SVC_TITLE_NEW), "");
+// geri al
+await page.goto(BASE + "/admin/services", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+await page.getByRole("button", { name: `${SVC_TITLE_NEW} düzenle` }).click();
+await page.waitForTimeout(500);
+await page.fill("#svc-title", SVC_TITLE_ORIG);
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+const svcBody4 = await page.textContent("body");
+check("hizmetler popup: geri alındı", svcBody4.includes(SVC_TITLE_ORIG), "");
 
 /* ---- 3) PORTFOLYO ---- */
 await page.goto(BASE + "/admin/portfolio", { waitUntil: "networkidle" });
@@ -163,6 +206,130 @@ const hasBig = medBody.includes("upload-big");
 check("medya: büyük dosya yüklendi (otomatik küçültme)", hasBig);
 await page.screenshot({ path: SHOT + "/cms-media-big.png" });
 
+/* ---- 4b) SÜREÇ POPUP ROUND-TRIP ---- */
+await page.goto(BASE + "/admin/process", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const PR_TITLE_ORIG = "Analiz";
+const PR_TITLE_NEW = "Analiz E2E";
+await page.getByRole("button", { name: `${PR_TITLE_ORIG} düzenle` }).click();
+await page.waitForTimeout(500);
+const prDlgVal1 = await page.inputValue("#p-title");
+check("süreç popup: mevcut değer görüntüleniyor", prDlgVal1 === PR_TITLE_ORIG, `val=${prDlgVal1}`);
+await page.fill("#p-title", PR_TITLE_NEW);
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.getByRole("button", { name: `${PR_TITLE_NEW} düzenle` }).click();
+await page.waitForTimeout(500);
+const prDlgVal2 = await page.inputValue("#p-title");
+check("süreç popup: kaydedilen düzenleme görüntüleniyor", prDlgVal2 === PR_TITLE_NEW, `val=${prDlgVal2}`);
+await page.getByRole("button", { name: "Vazgeç" }).click();
+await page.waitForTimeout(400);
+await page.goto(BASE + "/admin/process", { waitUntil: "networkidle" });
+await page.waitForTimeout(1000);
+await page.getByRole("button", { name: `${PR_TITLE_NEW} düzenle` }).click();
+await page.waitForTimeout(500);
+await page.fill("#p-title", PR_TITLE_ORIG);
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2000);
+await page.screenshot({ path: SHOT + "/cms-process.png" });
+
+/* ---- 4c) MENÜ: açılır hedef + yönlendirme testleri (Sorun 1 ve 2) ---- */
+await page.goto(BASE + "/admin/navigation", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+// Bootstrap 7 varsayılan öğe açar (Referanslarımız dahil); serbest hedef yerine
+// açılır listeden seçim çalışmalı: yeni öğeyi "/#referanslar" ile ekle.
+await page.getByRole("button", { name: "Yeni öğe" }).click();
+await page.waitForTimeout(400);
+await page.fill("#n-label", "Referanslarımız E2E");
+await page.selectOption("#n-href", "/#referanslar");
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+const navRows = await page.locator("table tbody tr").count();
+check("menü: seed 7 + 1 yeni öğe", navRows === 8, `rows=${navRows}`);
+const navBody = await page.textContent("body");
+check("menü: hedef /#referanslar kaydedildi", navBody.includes("/#referanslar"), "");
+
+// header bağlantıları ve kaydırma davranışı (DB menüsü aktif)
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.waitForTimeout(800);
+const refLink = page.locator("header#hd nav.m a", { hasText: "Referanslarımız E2E" });
+check("header: yeni Referanslarımız linki var", (await refLink.count()) === 1, "");
+check("header: Referanslarımız href doğruden", (await refLink.getAttribute("href")) === "/#referanslar", "");
+// sayfa sonuna in → Referanslarımız'a tıkla → bölüm başına kaymalı
+await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+await page.waitForTimeout(600);
+await refLink.click();
+await page.waitForTimeout(1800);
+const refTop = await page.evaluate(() => {
+  const el = document.getElementById("referanslar");
+  return el ? Math.abs(window.scrollY - (el.getBoundingClientRect().top + window.scrollY - 60)) : -1;
+});
+check("header: Referanslarımız bölümüne kaydırıyor", refTop >= 0 && refTop < 120, `delta=${refTop}`);
+// Ana Sayfa butonu (seed) → site en başına kaymalı
+await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+await page.waitForTimeout(600);
+await page.locator("header#hd nav.m a", { hasText: "Ana Sayfa" }).first().click();
+await page.waitForTimeout(1800);
+const homeY = await page.evaluate(() => window.scrollY);
+check("header: Ana Sayfa butonu en başa kaydırıyor", homeY < 10, `scrollY=${homeY}`);
+// logo tıklaması → site en başına kaymalı
+await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+await page.waitForTimeout(600);
+await page.locator("header#hd a.logo").click();
+await page.waitForTimeout(1800);
+const logoY = await page.evaluate(() => window.scrollY);
+check("header: logo tıklaması en başa kaydırıyor", logoY < 10, `scrollY=${logoY}`);
+// blog sayfasından Ana Sayfa → yönlendirme + en başta
+await page.goto(BASE + "/blog", { waitUntil: "networkidle" });
+await page.waitForTimeout(800);
+await page.locator("header#hd nav.m a", { hasText: "Ana Sayfa" }).first().click();
+await page.waitForURL(BASE + "/", { timeout: 15000 });
+await page.waitForTimeout(1200);
+const backY = await page.evaluate(() => window.scrollY);
+check("header: blogdan Ana Sayfa'ya yönlendirme", page.url() === BASE + "/" && backY < 10, `url=${page.url()} y=${backY}`);
+await page.screenshot({ path: SHOT + "/cms-nav.png" });
+// temizlik: test öğesini sil; diğer öğeler kalır
+await page.goto(BASE + "/admin/navigation", { waitUntil: "networkidle" });
+await page.waitForTimeout(1000);
+await page.getByRole("button", { name: "Referanslarımız E2E sil" }).click();
+await page.waitForTimeout(2000);
+
+/* ---- 4d) LOGO: Genel Ayarlar'dan yükle → kaydet → sitede aktif (Sorun 4) ---- */
+await page.goto(BASE + "/admin/settings/general", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const setBody = await page.textContent("body");
+check("ayarlar: Site Logosu kartı var", setBody.includes("Site Logosu"), "");
+check("ayarlar: varsayılan logo önizleme", await page.locator('img[alt="Site logosu"]').getAttribute("src") === "/assets/logo.png", "");
+await page.setInputFiles('input[type="file"]', "/tmp/upload-logo.png");
+await page.waitForTimeout(3500);
+const logoPrev1 = await page.locator('img[alt="Site logosu"]').getAttribute("src");
+check("ayarlar: yükleme sonrası önizleme değişti", (logoPrev1 ?? "").startsWith("/uploads/media/"), logoPrev1 ?? "yok");
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.reload({ waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const logoPrev2 = await page.locator('img[alt="Site logosu"]').getAttribute("src");
+check("ayarlar: logo kaydedildi (reload sonrası kalıcı)", logoPrev2 === logoPrev1, `${logoPrev2}`);
+// sitede aktif mi?
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.waitForTimeout(800);
+const hdrLogoSrc = await page.locator("header#hd a.logo img").getAttribute("src");
+check("site: header logosu admin'den geldi", hdrLogoSrc === logoPrev1, hdrLogoSrc ?? "yok");
+const ftrLogoSrc = await page.locator("footer a.lg img").getAttribute("src");
+check("site: footer logosu admin'den geldi", ftrLogoSrc === logoPrev1, ftrLogoSrc ?? "yok");
+await page.screenshot({ path: SHOT + "/cms-logo.png" });
+// varsayılana dön
+await page.goto(BASE + "/admin/settings/general", { waitUntil: "networkidle" });
+await page.waitForTimeout(1000);
+await page.getByRole("button", { name: "Varsayılana dön" }).click();
+await page.waitForTimeout(400);
+await page.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.waitForTimeout(800);
+const hdrLogoDefault = await page.locator("header#hd a.logo img").getAttribute("src");
+check("site: logo varsayılana döndü", hdrLogoDefault === "/assets/logo.png", hdrLogoDefault ?? "yok");
+
 /* ---- 5) SİTE PARİTESİ ---- */
 // admin'den stats değerini değiştir → sitede görün
 await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
@@ -193,6 +360,9 @@ await page.waitForTimeout(1500);
 await page.getByLabel("1. sayaç değeri").fill("25");
 await page.locator('[data-slot="card"]').filter({ hasText: "İstatistik Bandı" }).getByRole("button", { name: "Kaydet" }).click();
 await page.waitForTimeout(2000);
+
+/* ---- konsol JS hatası yok ---- */
+check("konsol: yakalanmayan JS hatası yok", pageErrors.length === 0, pageErrors.slice(0, 3).join(" | "));
 
 await browser.close();
 console.log(`\nSONUÇ: ${pass} PASS, ${failCount} FAIL`);

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { ImageUp, Loader2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { saveGeneralSettings, type GeneralSettings } from "@/features/admin/settings/actions";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const DEFAULT_LOGO = "/assets/logo.png";
+
 export function GeneralSettingsForm({ initial }: { initial: GeneralSettings }) {
   const router = useRouter();
   const [form, setForm] = useState<GeneralSettings>(initial);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  /** Logo dosyasını medya API'sine yükler; dönen adresi logoya atar (Kaydet ile kalıcılaşır). */
+  async function uploadLogo(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("files", file);
+      const res = await fetch("/api/admin/media", { method: "POST", body: fd });
+      const json = (await res.json()) as { ok: boolean; error?: string; results?: Array<{ publicUrl: string }> };
+      if (!res.ok || !json.ok || !json.results?.[0]) {
+        toast.error(json.error ?? "Logo yüklenemedi.");
+        return;
+      }
+      setForm((f) => ({ ...f, logoUrl: json.results![0].publicUrl }));
+      toast.success("Logo yüklendi. Kalıcı olması için 'Kaydet'e basın.");
+    } catch {
+      toast.error("Logo yüklenemedi.");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -33,6 +59,43 @@ export function GeneralSettingsForm({ initial }: { initial: GeneralSettings }) {
 
   return (
     <form onSubmit={save} className="space-y-5" aria-label="Genel site ayarları">
+      <Card className="border-neutral-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-neutral-900">Site Logosu</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex h-20 w-32 items-center justify-center rounded-xl border border-neutral-200 bg-white p-2">
+              <img src={form.logoUrl || DEFAULT_LOGO} alt="Site logosu" className="max-h-14 w-auto" />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/avif"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void uploadLogo(f);
+                }}
+              />
+              <Button type="button" variant="outline" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />} Logo yükle
+              </Button>
+              {form.logoUrl ? (
+                <Button type="button" variant="ghost" onClick={() => setForm({ ...form, logoUrl: "" })}>
+                  <RotateCcw className="h-4 w-4" /> Varsayılana dön
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <p className="text-xs text-neutral-400">
+            PNG/JPEG/WebP, en fazla 10 MB. Yüklenen logo üst menüde, alt bilgide ve partner kartında kullanılır.
+            Kalıcı olması için sayfanın altındaki “Kaydet” düğmesine basın.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className="border-neutral-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold text-neutral-900">İletişim Bilgileri</CardTitle>

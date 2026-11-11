@@ -69,7 +69,7 @@ function storageErrorMessage(e: unknown): string {
     return "Vercel Blob kimlik bilgisi bulunamadı. Çözüm: Vercel > Depolama > Blob mağazası > Projects sekmesi > proje bağlantısını güncelleyip 'Add a read-write token' seçeneğini işaretleyin veya OIDC bağlantısını (BLOB_STORE_ID) etkinleştirin; ardından yeniden deploy edin.";
   }
   if (/private store|public access/i.test(msg)) {
-    return "Blob mağazanız 'Private' erişimle oluşturulmuş; site görselleri herkese açık (Public) mağaza gerektirir ve mağaza erişim türü sonradan değiştirilemez. Çözüm: Vercel > Depolama > Create Storage > Blob > erişim olarak 'Public' seçip oluşturun, projeyi bağlayın ve yeniden deploy edin; eski private mağazayı silebilirsiniz.";
+    return "Blob mağazanıza private erişimle yazılamadı. Sistem normalde bu durumda otomatik olarak private yazıma geçer; bu hatayı görüyorsanız mağaza izinlerinde bir kısıt vardır. Çözüm: Vercel > Depolama > Blob mağazanızın projeye bağlı olduğundan ve yazma izni (read-write) içerdiğinden emin olun, ardından yeniden deploy edin.";
   }
   return `Depolama hatası: ${msg.slice(0, 160)}`;
 }

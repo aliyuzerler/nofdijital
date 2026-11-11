@@ -17,9 +17,11 @@ const DEFAULT_NAV = [
   { label: "İletişim", href: "/#iletisim" },
 ];
 
-export function SiteHeader({ nav }: { nav?: Array<{ label: string; href: string }> }) {
+export function SiteHeader({ nav, logoUrl }: { nav?: Array<{ label: string; href: string }>; logoUrl?: string }) {
   // Admin > Menü'den gelen öğeler; liste boşsa varsayılan menü gösterilir.
   const NAV = nav && nav.length > 0 ? nav : DEFAULT_NAV;
+  // Admin > Genel Ayarlar'dan yüklenen logo; tanımsızsa statik marka logosu.
+  const LOGO_SRC = logoUrl || GALLERY.logo;
   const [sc, setSc] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -47,9 +49,24 @@ export function SiteHeader({ nav }: { nav?: Array<{ label: string; href: string 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : href === "/blog" ? pathname.startsWith("/blog") : false;
 
+  /** Sayfa en başa yumuşak kaydırma (reduced-motion duyarlı). */
+  const scrollTop = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const RM = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: RM ? "auto" : "smooth" });
+    setOpen(false);
+  };
+
   const goSection = (href: string) => (e: React.MouseEvent<HTMLAnchorElement>) => {
     const id = href.split("#")[1];
-    if (id && pathname === "/") {
+    if (!id) {
+      // Hash'siz hedef (ör. "/"): ana sayfadaysak site en başına kaydır;
+      // değilse normal gezinme (yönlendirme sonrası Next en baştan açar).
+      if (href === "/" && pathname === "/") scrollTop(e);
+      else setOpen(false);
+      return;
+    }
+    if (pathname === "/") {
       e.preventDefault();
       const el = document.getElementById(id);
       if (el) {
@@ -67,8 +84,8 @@ export function SiteHeader({ nav }: { nav?: Array<{ label: string; href: string 
     <>
       <header id="hd" className={sc ? "sc" : ""}>
         <div className="wrap">
-          <Link href="/" className="logo" aria-label="NOF DİJİTAL ana sayfa">
-            <img src={GALLERY.logo} alt="NOF DİJİTAL" />
+          <Link href="/" className="logo" aria-label="NOF DİJİTAL ana sayfa" onClick={(e) => pathname === "/" && scrollTop(e)}>
+            <img src={LOGO_SRC} alt="NOF DİJİTAL" />
           </Link>
           <nav className="m" aria-label="Ana menü">
             {NAV.map((n) => (

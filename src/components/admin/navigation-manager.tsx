@@ -23,6 +23,22 @@ interface FormState {
 
 const EMPTY: FormState = { label: "", href: "/", position: 0, target: "_self", isVisible: true };
 
+/**
+ * Bilinen hedefler — ana sayfa bölüm çmaları (/bölüm-anahtarı) ve sayfalar.
+ * Serbest metin yerine listeden seçim; "Ozel" seçeneği serbest metin verir.
+ */
+const HREF_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "/", label: "Ana Sayfa (site başı)" },
+  { value: "/#hizmetler", label: "Hizmetler bölümü" },
+  { value: "/#calismalar", label: "Çalışmalarımız bölümü" },
+  { value: "/#referanslar", label: "Referanslarımız bölümü" },
+  { value: "/#hakkimizda", label: "Hakkımızda bölümü" },
+  { value: "/#surec", label: "Çalışma Süreci bölümü" },
+  { value: "/#iletisim", label: "İletişim bölümü" },
+  { value: "/blog", label: "Blog sayfası" },
+];
+const CUSTOM = "__custom__";
+
 export function NavigationManager({ rows }: { rows: NavRow[] }) {
   const router = useRouter();
   const [target, setTarget] = useState<NavRow | null>(null);
@@ -153,7 +169,32 @@ export function NavigationManager({ rows }: { rows: NavRow[] }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="n-href">Hedef</Label>
-              <Input id="n-href" value={form.href} onChange={(e) => setForm({ ...form, href: e.target.value })} placeholder="/blog" />
+              <select
+                id="n-href"
+                value={HREF_OPTIONS.some((o) => o.value === form.href) ? form.href : CUSTOM}
+                onChange={(e) => setForm({ ...form, href: e.target.value === CUSTOM ? "/" : e.target.value })}
+                className="h-9 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm"
+              >
+                {HREF_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+                <option value={CUSTOM}>Özel hedef (elle gir)</option>
+              </select>
+              {HREF_OPTIONS.some((o) => o.value === form.href) ? null : (
+                <Input
+                  id="n-href-custom"
+                  value={form.href}
+                  onChange={(e) => setForm({ ...form, href: e.target.value })}
+                  placeholder="/ornek-sayfa veya /#bolum"
+                  className="mt-2"
+                />
+              )}
+              <p className="text-xs text-neutral-400">
+                Bölüm bağlantıları ana sayfadaki bölüm açılır (ör. Referanslarımız → “/#referanslar”). Listede olmayan bir
+                adres için “Özel hedef” seçin.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

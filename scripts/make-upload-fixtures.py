@@ -36,3 +36,5 @@ def write_png(path: str, w: int, h: int, noise: bool) -> None:
 
 write_png("/tmp/upload-small.png", 640, 400, noise=False)
 write_png("/tmp/upload-big.png", 3200, 2200, noise=True)
+# Logo yönetimi testi için benzersiz içerikli küçük PNG (seed logolarıyla checksum çakışmasın)
+write_png("/tmp/upload-logo.png", 320, 200, noise=True)

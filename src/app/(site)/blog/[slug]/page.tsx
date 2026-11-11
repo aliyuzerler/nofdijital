@@ -13,6 +13,9 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+// Yazı içeriği DB'den beslenir; admin düzenlemeleri anında yayında görün.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedPost(slug);

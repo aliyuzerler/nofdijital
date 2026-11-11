@@ -23,6 +23,8 @@ const generalSchema = z.object({
     linkedin: z.string().trim().max(200),
     youtube: z.string().trim().max(200),
   }),
+  /** Site logosu; boşsa statik marka logosu (/assets/logo.png) kullanılır. */
+  logoUrl: z.string().trim().max(500),
 });
 
 export type GeneralSettings = z.infer<typeof generalSchema>;
@@ -37,6 +39,7 @@ export async function getGeneralSettings(): Promise<GeneralSettings | null> {
       email: s.email,
       address: s.address,
       social: s.social,
+      logoUrl: s.logoUrl,
     };
   } catch {
     return null;
@@ -53,6 +56,7 @@ export async function saveGeneralSettings(raw: unknown) {
       email: input.email,
       address: input.address,
       social: input.social,
+      logoUrl: input.logoUrl,
     };
     await db
       .insert(siteSettings)
