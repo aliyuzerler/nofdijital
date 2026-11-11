@@ -16,11 +16,14 @@ const SECTION_LABEL: Record<string, string> = {
   hero: "Hero (Kapak)",
   services: "Hizmetler",
   gallery: "Galeri",
+  stats: "İstatistik Bandı (Sayaçlar)",
   about: "Hakkımızda",
   process: "Süreç",
   "blog-preview": "Blog Önizleme",
   contact: "İletişim",
 };
+
+const MAX_STATS_ITEMS = 6;
 
 function CtaFields({
   label,
@@ -42,6 +45,93 @@ function CtaFields({
   );
 }
 
+type StatItemForm = { value: number; suffix: string; label: string };
+
+/** İstatistik sayaçlarını düzenler: değer/sonek/etiket; ekle-sil (max 6). */
+function StatsItemsEditor({ value, onChange }: { value: StatItemForm[]; onChange: (v: StatItemForm[]) => void }) {
+  const update = (i: number, patch: Partial<StatItemForm>) => {
+    onChange(value.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
+  };
+  const remove = (i: number) => {
+    if (value.length <= 1) return; // en az 1 kalem kalır
+    onChange(value.filter((_, idx) => idx !== i));
+  };
+  const add = () => {
+    if (value.length >= MAX_STATS_ITEMS) return;
+    onChange([...value, { value: 0, suffix: "", label: "" }]);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label>Sayaçlar (ekrana girince sırayla sayarak artar)</Label>
+      <div className="space-y-2">
+        {value.map((it, i) => (
+          <div key={i} className="flex items-end gap-2">
+            <div className="w-28 space-y-1">
+              <Label htmlFor={`stv-${i}`} className="text-xs text-neutral-500">
+                Değer
+              </Label>
+              <Input
+                id={`stv-${i}`}
+                type="number"
+                min={0}
+                max={999999999}
+                step={1}
+                value={Number.isFinite(it.value) ? it.value : 0}
+                onChange={(e) => {
+                  const n = Math.round(Number(e.target.value));
+                  update(i, { value: Number.isFinite(n) && n >= 0 ? n : 0 });
+                }}
+                aria-label={`${i + 1}. sayaç değeri`}
+              />
+            </div>
+            <div className="w-20 space-y-1">
+              <Label htmlFor={`sts-${i}`} className="text-xs text-neutral-500">
+                Sonek
+              </Label>
+              <Input
+                id={`sts-${i}`}
+                value={it.suffix}
+                maxLength={8}
+                placeholder="+"
+                onChange={(e) => update(i, { suffix: e.target.value })}
+                aria-label={`${i + 1}. sayaç soneki`}
+              />
+            </div>
+            <div className="flex-1 space-y-1">
+              <Label htmlFor={`stl-${i}`} className="text-xs text-neutral-500">
+                Etiket
+              </Label>
+              <Input
+                id={`stl-${i}`}
+                value={it.label}
+                maxLength={120}
+                placeholder="Farklı Sektör"
+                onChange={(e) => update(i, { label: e.target.value })}
+                aria-label={`${i + 1}. sayaç etiketi`}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => remove(i)}
+              disabled={value.length <= 1}
+              aria-label={`${i + 1}. sayacı sil`}
+            >
+              Sil
+            </Button>
+          </div>
+        ))}
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={add} disabled={value.length >= MAX_STATS_ITEMS}>
+        + Sayaç Ekle
+      </Button>
+      <p className="text-xs text-neutral-400">En fazla {MAX_STATS_ITEMS} sayaç. Sonek boşsa yalnızca sayı gösterilir (ör. 2.325), “+” gibi işaretler Sonek alanına yazılır.</p>
+    </div>
+  );
+}
+
 function SectionForm({ section }: { section: HomeSectionRow }) {
   const router = useRouter();
   const [eyebrow, setEyebrow] = useState(section.eyebrow ?? "");
@@ -52,11 +142,13 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
   const [ctaPrimary, setCtaPrimary] = useState(section.ctaPrimary ?? { label: "", href: "" });
   const [ctaSecondary, setCtaSecondary] = useState(section.ctaSecondary ?? { label: "", href: "" });
   const [cta, setCta] = useState(section.cta ?? { label: "", href: "" });
+  const [statsItems, setStatsItems] = useState<StatItemForm[]>(section.statsItems ?? []);
   const [saving, setSaving] = useState(false);
 
   const hasCtaPrimary = section.ctaPrimary !== null;
   const hasCtaSecondary = section.ctaSecondary !== null;
   const hasCta = section.cta !== null;
+  const hasStats = section.statsItems !== null;
 
   async function save() {
     setSaving(true);
@@ -67,6 +159,7 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
       if (hasCtaPrimary) payload.ctaPrimary = ctaPrimary;
       if (hasCtaSecondary) payload.ctaSecondary = ctaSecondary;
       if (hasCta) payload.cta = cta;
+      if (hasStats) payload.statsItems = statsItems;
       const res = await saveHomeSection(payload);
       if (res.ok) {
         toast.success("Bölüm kaydedildi.");
@@ -130,6 +223,8 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
         {hasCtaPrimary ? <CtaFields label="Ana buton (ctaPrimary)" value={ctaPrimary} onChange={setCtaPrimary} /> : null}
         {hasCtaSecondary ? <CtaFields label="İkincil buton (ctaSecondary)" value={ctaSecondary} onChange={setCtaSecondary} /> : null}
         {hasCta ? <CtaFields label="Buton (cta)" value={cta} onChange={setCta} /> : null}
+
+        {hasStats ? <StatsItemsEditor value={statsItems} onChange={setStatsItems} /> : null}
 
         <Separator />
         <div className="flex justify-end">

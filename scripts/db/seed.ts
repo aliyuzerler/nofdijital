@@ -12,7 +12,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { drizzle as drizzlePgJs } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import sharp from "sharp";
 import {
   siteSettings,
@@ -305,6 +305,22 @@ async function main() {
       body: { scenes: GALLERY.scenes },
     },
     {
+      // İstatistik bandı (Referansların üstü) — admin panelinden yönetilir:
+      // başlık/lead/accent + statsItems [{ value, suffix, label }] (sayaçlar).
+      key: "stats",
+      type: "stats",
+      title: "Biz olmadan sizi fark edemezler!",
+      body: {
+        lead: "Fark edilmek, fark yaratmak ile başlar. Markanızı öne çıkaran yaratıcı çözümlerle sizinle birlikteyiz.",
+        accent: "fark edemezler!",
+        statsItems: [
+          { value: 25, suffix: "", label: "Farklı Sektör" },
+          { value: 85, suffix: "+", label: "İş Birliği Yaptığımız Markalar" },
+          { value: 2325, suffix: "", label: "Bitmiş Proje" },
+        ],
+      },
+    },
+    {
       key: "about",
       type: "about",
       eyebrow: "Hakkımızda",
@@ -354,6 +370,14 @@ async function main() {
         position: i,
       })
       .onConflictDoNothing();
+  }
+  // Pozisyon normalizasyonu: sonradan eklenen bölüm (ör. stats) mevcut DB'ye
+  // eklendiğinde kanonik sıraya otursun (idempotent — duplicate üretmez).
+  for (let i = 0; i < sections.length; i++) {
+    await db
+      .update(pageSections)
+      .set({ position: i })
+      .where(and(eq(pageSections.pageId, home.id), eq(pageSections.sectionKey, sections[i]!.key)));
   }
 
   /* 8) Navigasyon */

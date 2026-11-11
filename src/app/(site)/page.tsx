@@ -2,19 +2,21 @@ import Link from "next/link";
 import { PostCard, ServiceCards } from "@/components/site/cards";
 import { WorkGallery } from "@/components/site/work-gallery";
 import { ReferencesSection } from "@/components/site/references-section";
-import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, toPostItems } from "@/server/services/repositories";
+import { StatsBand } from "@/components/site/stats-band";
+import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, getStatsSection, toPostItems } from "@/server/services/repositories";
 import { GALLERY, SITE } from "@/content/reference-data";
 
 const CLS = ["s7", "s5", "s5", "s7"];
 const BAR_H = ["30%", "48%", "40%", "68%", "58%", "84%", "100%"];
 
 export default async function HomePage() {
-  const [sections, services, steps, galleryItems, posts] = await Promise.all([
+  const [sections, services, steps, galleryItems, posts, statsSection] = await Promise.all([
     getHomeSections(),
     getServices(),
     getProcessSteps(),
     getGalleryItems(),
     getPublishedPosts(4),
+    getStatsSection(),
   ]);
 
   const hero = sections.hero?.body ?? {};
@@ -37,6 +39,18 @@ export default async function HomePage() {
   ];
   const contactInfo = (contact.info as Array<{ icon: string; text: string }> | undefined) ?? SITE.contactInfo;
   const postItems = toPostItems(posts);
+
+  // İstatistik bandı: admin panelinden yönetilir (page_sections: stats → bodyJson).
+  // Bölüm DB'de yoksa varsayılan içerikle gösterilir; admin "Görünür" kapalıysa gizlenir.
+  const statsBody = (statsSection?.body ?? {}) as {
+    lead?: string;
+    accent?: string;
+    statsItems?: Array<{ value: number; suffix?: string; label: string }>;
+  };
+  const showStats = statsSection ? statsSection.visible : true;
+  const statsItems = statsBody.statsItems?.length
+    ? statsBody.statsItems.map((i) => ({ value: i.value, suffix: i.suffix ?? "", label: i.label }))
+    : null;
 
   return (
     <div id="v-home">
@@ -116,6 +130,17 @@ export default async function HomePage() {
 
       {/* ÇALIŞMALAR — sticky galeri */}
       <WorkGallery items={galleryItems} />
+
+      {/* İSTATİSTİK BANDI — sayaçlı (Referansların üstü, admin'den yönetilir) */}
+      {showStats ? (
+        <StatsBand
+          eyebrow={statsSection?.eyebrow ?? null}
+          title={statsSection?.title ?? null}
+          accent={statsBody.accent ?? null}
+          lead={statsBody.lead ?? null}
+          items={statsItems}
+        />
+      ) : null}
 
       {/* REFERANSLARIMIZ — 2 şerit simetrik logo marquee */}
       <ReferencesSection />

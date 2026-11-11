@@ -290,3 +290,38 @@ export async function getNavigation(): Promise<Array<{ label: string; href: stri
     return rows.map((r) => ({ label: r.label, href: r.href }));
   }, []);
 }
+
+/**
+ * İstatistik bandı bölümü (stats). getHomeSections()'tan bağımsız okunur, çünkü
+ * oradaki sorgu yalnızca isVisible=true satırları döndürür; admin "Görünür"
+ * anahtarını kapattığında bölümü gizleyebilmek için satırın varlığını + görünürlük
+ * bayrağını ayrı bilmemiz gerekir.
+ * - null  : satır yok / DB yok → sayfa varsayılan içerikle bandı gösterir
+ * - var   : visible bayrağı sayfada karara işlenir
+ */
+export interface StatsSectionView extends SectionView {
+  visible: boolean;
+}
+
+export async function getStatsSection(): Promise<StatsSectionView | null> {
+  return safe(async () => {
+    const db = await getDb();
+    const page = (await db.select().from(pages).where(eq(pages.slug, "home")).limit(1))[0];
+    if (!page) return null;
+    const rows = await db
+      .select()
+      .from(pageSections)
+      .where(and(eq(pageSections.pageId, page.id), eq(pageSections.sectionKey, "stats")))
+      .limit(1);
+    const r = rows[0];
+    if (!r) return null;
+    return {
+      key: r.sectionKey,
+      type: r.sectionType,
+      eyebrow: r.eyebrow,
+      title: r.title,
+      body: (r.bodyJson ?? {}) as Record<string, unknown>,
+      visible: r.isVisible,
+    };
+  }, null);
+}
