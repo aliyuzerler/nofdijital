@@ -9,7 +9,7 @@ import { ThemeToggle } from "@/components/site/theme-toggle";
 import { ToastHost } from "@/components/site/toast";
 import { WhatsAppButton } from "@/components/site/whatsapp-button";
 import { getPublicSettings } from "@/server/services/settings";
-import { getGalleryItems } from "@/server/services/repositories";
+import { getGalleryItems, getNavigation, getServices } from "@/server/services/repositories";
 import { getDb } from "@/server/db";
 import { pages } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -41,15 +41,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [settings, galleryItems] = await Promise.all([getPublicSettings(), getGalleryItems()]);
+  // Menü + hizmetler layout seviyesinde tek seferde okunur; header ve footer'a aynı veri akar.
+  const [settings, galleryItems, nav, services] = await Promise.all([
+    getPublicSettings(),
+    getGalleryItems(),
+    getNavigation(),
+    getServices(),
+  ]);
   return (
     <>
       <IconSprite />
       <CanvasBackground />
-      <SiteHeader />
+      <SiteHeader nav={nav} />
       <RevealProvider />
       <main>{children}</main>
-      <SiteFooter />
+      <SiteFooter settings={settings} nav={nav} services={services} />
       <WhatsAppButton number={settings.whatsappNumber} />
       <Lightbox items={galleryItems} />
       <ToastHost />

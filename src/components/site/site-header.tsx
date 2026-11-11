@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { GALLERY } from "@/content/reference-data";
 
-const NAV = [
+/** DB'de menü öğesi yokken kullanılan varsayılan liste (görsel parite). */
+const DEFAULT_NAV = [
   { label: "Ana Sayfa", href: "/" },
   { label: "Hizmetler", href: "/#hizmetler" },
   { label: "Çalışmalarımız", href: "/#calismalar" },
@@ -16,7 +17,9 @@ const NAV = [
   { label: "İletişim", href: "/#iletisim" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ nav }: { nav?: Array<{ label: string; href: string }> }) {
+  // Admin > Menü'den gelen öğeler; liste boşsa varsayılan menü gösterilir.
+  const NAV = nav && nav.length > 0 ? nav : DEFAULT_NAV;
   const [sc, setSc] = useState(false);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
