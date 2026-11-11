@@ -89,3 +89,217 @@
 .nof-editor .ProseMirror p.is-empty::before {
   content: "";
 }
+
+/* ---- Admin giriş ekranı (.alx) — site tasarım dili (2026-11) ----
+   İZOLasyon kuralı: bu blok YALNIZCA .alx-* önekli seçiciler içerir; admin.css'in
+   mevcut kuralları ve public site CSS'i (nof.css) etkilenmez. Tasarım: koyu zemin
+   #15131b (site --dk), marka moru #9335FF, beyaz logo chip'i (site .logo dili),
+   eyebrow çizgisi (site .eyb dili), Bricolage başlık (--fd) / DM Sans gövde (--fb). */
+.alx-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  background: #15131b;
+  font-family: var(--fb);
+  color: #fff;
+}
+.alx-glow {
+  position: absolute;
+  right: -14%;
+  bottom: -34%;
+  width: 64%;
+  height: 130%;
+  background: radial-gradient(closest-side, rgba(147, 53, 255, 0.16), transparent 72%);
+  pointer-events: none;
+}
+.alx-zone {
+  position: relative;
+  width: 100%;
+  max-width: 408px;
+  margin: auto;
+}
+.alx-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  text-align: center;
+  margin-bottom: 26px;
+}
+.alx-logo {
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px 16px;
+  display: block;
+  box-shadow: 0 22px 55px -20px rgba(147, 53, 255, 0.55);
+}
+.alx-logo img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+.alx-eyb {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #b9a0ef;
+}
+.alx-eyb::before {
+  content: "";
+  width: 26px;
+  height: 2px;
+  background: #9335ff;
+}
+.alx-title {
+  font-family: var(--fd);
+  font-size: 1.62rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: #fff;
+}
+.alx-title em {
+  font-style: normal;
+  color: #9335ff;
+}
+.alx-sub {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  max-width: 34ch;
+  margin: 0;
+}
+.alx-card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 22px;
+  padding: 26px 24px;
+  display: grid;
+  gap: 15px;
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8);
+}
+.alx-field {
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+.alx-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.74);
+}
+.alx-input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  font-family: var(--fb);
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.alx-input:focus {
+  border-color: #9335ff;
+}
+.alx-input::placeholder {
+  color: rgba(255, 255, 255, 0.32);
+}
+.alx-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+.alx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 20px;
+  background: #9335ff;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-family: var(--fb);
+  cursor: pointer;
+  transition: background 0.25s;
+  margin-top: 2px;
+}
+.alx-btn:hover {
+  background: #8426f2;
+}
+.alx-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.alx-err {
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 10px 13px;
+  border-radius: 12px;
+  margin: 0;
+  text-align: left;
+}
+.alx-ok {
+  border: 1px solid rgba(147, 53, 255, 0.4);
+  background: rgba(147, 53, 255, 0.14);
+  color: #d9c6ff;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 10px 13px;
+  border-radius: 12px;
+  margin: 0;
+  text-align: left;
+}
+.alx-note {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.55;
+  text-align: center;
+  margin: 0;
+}
+.alx-foot {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+}
+.alx-spin {
+  animation: alx-spin 1s linear infinite;
+}
+@keyframes alx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .alx-spin {
+    animation: none;
+  }
+}
+@media (max-width: 480px) {
+  .alx-root {
+    align-items: flex-start;
+    padding-top: 48px;
+  }
+  .alx-card {
+    padding: 22px 18px;
+  }
+}

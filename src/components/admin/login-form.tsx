@@ -1,21 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, LogIn } from "lucide-react";
+import { Loader2, LogIn, ShieldCheck } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-export function LoginForm() {
+/**
+ * Admin giriş ekranı — site tasarım diliyle (koyu zemin #15131b, marka moru
+ * #9335FF, Bricolage başlık, DM Sans gövde, beyaz logo chip'i).
+ *
+ * İki mod:
+ *  - "login"     : normal giriş (şifreli admin hesabı varsa)
+ *  - "bootstrap" : ilk kurulum — hiç şifreli admin yokken owner hesabı oluşturur
+ *                  (/api/admin/bootstrap; rate limit 3 istek/saat, tek seferlik).
+ *
+ * Stiller admin.css'teki .alx-* bloğundadır; public site CSS'ine ve diğer admin
+ * sayfalarına dokunmaz (izole prefix kuralı).
+ */
+
+type Mode = "login" | "bootstrap";
+
+export function AdminLoginView({ mode }: { mode: Mode }) {
+  const [view, setView] = useState<Mode>(mode);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function submitLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setLoading(true);
     try {
       const res = await signIn.email({ email: email.trim(), password });
@@ -31,63 +47,160 @@ export function LoginForm() {
     }
   }
 
+  async function submitBootstrap(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setInfo(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/bootstrap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password, name: name.trim() }),
+      });
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (!res.ok || !data?.ok) {
+        // Kurulum daha önce tamamlanmışsa normal giriş formuna dön.
+        if (res.status === 409) {
+          setView("login");
+          setInfo("Kurulum daha önce tamamlanmış görünüyor. Lütfen giriş yapın.");
+        } else {
+          setError(data?.error ?? "Kurulum tamamlanamadı. Lütfen tekrar deneyin.");
+        }
+        return;
+      }
+      // Hesap oluşturuldu → otomatik giriş
+      const li = await signIn.email({ email: email.trim(), password });
+      if (li?.error) {
+        setView("login");
+        setInfo("Hesabınız oluşturuldu. Lütfen e-posta ve şifrenizle giriş yapın.");
+        return;
+      }
+      window.location.assign("/admin");
+    } catch {
+      setError("Kurulum tamamlanamadı. Lütfen tekrar deneyin.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const isSetup = view === "bootstrap";
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8254D8] text-lg font-bold text-white" aria-hidden>
-            N
+    <div className="alx-root">
+      <div className="alx-glow" aria-hidden />
+      <div className="alx-zone">
+        <div className="alx-brand">
+          <span className="alx-logo">
+            <img src="/assets/logo.png" alt="NOF DİJİTAL" />
           </span>
-          <div>
-            <h1 className="text-xl font-semibold text-white">NOF DİJİTAL Yönetim</h1>
-            <p className="mt-1 text-sm text-neutral-400">Devam etmek için giriş yapın.</p>
-          </div>
+          <span className="alx-eyb">Yönetim Paneli</span>
+          <h1 className="alx-title">
+            {isSetup ? (
+              <>
+                İlk kurulum: <em>owner hesabı</em>
+              </>
+            ) : (
+              <>
+                Yönetim paneline <em>giriş</em>
+              </>
+            )}
+          </h1>
+          <p className="alx-sub">
+            {isSetup
+              ? "Sadece ilk kez görünür: kendi e-posta ve şifrenizle yetkili hesabınızı oluşturun."
+              : "Devam etmek için hesabınıza giriş yapın."}
+          </p>
         </div>
+
         <form
-          onSubmit={onSubmit}
-          className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-          aria-label="Giriş formu"
+          className="alx-card"
+          onSubmit={isSetup ? submitBootstrap : submitLogin}
+          aria-label={isSetup ? "İlk kurulum formu" : "Giriş formu"}
         >
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-neutral-300">
+          {isSetup ? (
+            <div className="alx-field">
+              <label className="alx-label" htmlFor="alx-name">
+                İsim
+              </label>
+              <input
+                id="alx-name"
+                className="alx-input"
+                type="text"
+                autoComplete="name"
+                required
+                maxLength={80}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Adınız Soyadınız"
+              />
+            </div>
+          ) : null}
+
+          <div className="alx-field">
+            <label className="alx-label" htmlFor="alx-email">
               E-posta
-            </Label>
-            <Input
-              id="email"
+            </label>
+            <input
+              id="alx-email"
+              className="alx-input"
               type="email"
               autoComplete="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ornek@nofdigital.com"
-              className="border-white/15 bg-white/5 text-neutral-100 placeholder:text-neutral-600"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-neutral-300">
+
+          <div className="alx-field">
+            <label className="alx-label" htmlFor="alx-password">
               Şifre
-            </Label>
-            <Input
-              id="password"
+            </label>
+            <input
+              id="alx-password"
+              className="alx-input"
               type="password"
-              autoComplete="current-password"
+              autoComplete={isSetup ? "new-password" : "current-password"}
               required
+              minLength={10}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••"
-              className="border-white/15 bg-white/5 text-neutral-100"
+              placeholder="En az 10 karakter"
             />
+            {isSetup ? <small className="alx-hint">En az 10 karakter olmalı. Bunu yalnız siz bilmelisiniz.</small> : null}
           </div>
+
           {error ? (
-            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+            <p role="alert" className="alx-err">
               {error}
             </p>
           ) : null}
-          <Button type="submit" disabled={loading} className="w-full bg-[#8254D8] text-white hover:bg-[#7143C2]">
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            Giriş yap
-          </Button>
+          {info && !error ? (
+            <p role="status" className="alx-ok">
+              {info}
+            </p>
+          ) : null}
+
+          <button className="alx-btn" type="submit" disabled={loading}>
+            {loading ? (
+              <Loader2 className="alx-spin" size={17} aria-hidden />
+            ) : isSetup ? (
+              <ShieldCheck size={17} aria-hidden />
+            ) : (
+              <LogIn size={17} aria-hidden />
+            )}
+            {isSetup ? "Hesabı Oluştur ve Giriş Yap" : "Giriş Yap"}
+          </button>
+
+          <p className="alx-note">
+            {isSetup
+              ? "Bu ekran, sistemde şifreli yönetici hesabı bulunmadığı için açıldı; kurulumdan sonra normal giriş ekranına döner."
+              : "Bu panel NOF DİJİTAL içerik yönetim sistemiyle çalışır."}
+          </p>
         </form>
+
+        <p className="alx-foot">© {new Date().getFullYear()} NOF DİJİTAL</p>
       </div>
     </div>
   );

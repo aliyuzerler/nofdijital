@@ -2,9 +2,9 @@ import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { getDb } from "@/server/db";
-import { user as userTable } from "@/server/db/schema";
+import { account as accountTable, user as userTable } from "@/server/db/schema";
 import { getAuth } from "@/server/auth/cached";
 
 /**
@@ -54,6 +54,25 @@ export async function requireUser(): Promise<AdminUser> {
   if (!u) redirect("/admin/login");
   return u;
 }
+
+/**
+ * Kurulum kilidi: sistemde şifreli (credential) admin hesabı var mı?
+ * Yoksa /admin/login ilk kurulum (owner oluşturma) modunda açılır; /api/admin/bootstrap
+ * ile aynı kuralı paylaşır. Hata durumunda güvenli taraf seçilir: kurulum tamamlanmış sayılır.
+ */
+export const hasAnyCredentialAdmin = cache(async (): Promise<boolean> => {
+  try {
+    const db = await getDb();
+    const rows = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(accountTable)
+      .where(eq(accountTable.providerId, "credential"));
+    return (rows[0]?.n ?? 0) > 0;
+  } catch (e) {
+    console.error("[guards] kurulum kilidi okunamadı:", e instanceof Error ? e.message : e);
+    return true;
+  }
+});
 
 /** Server action girişi: rol uymazsa AdminForbiddenError fırlatır. */
 export async function requireRole(roles: AdminRole[]): Promise<AdminUser> {
