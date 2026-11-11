@@ -215,6 +215,35 @@ await page.getByRole("button", { name: `${PR_TITLE_ORIG} düzenle` }).click();
 await page.waitForTimeout(500);
 const prDlgVal1 = await page.inputValue("#p-title");
 check("süreç popup: mevcut değer görüntüleniyor", prDlgVal1 === PR_TITLE_ORIG, `val=${prDlgVal1}`);
+
+/* ---- POPUP GÖRÜNÜRLÜK (beyaz-üstüne-beyaz regresyon denetimi) ----
+   Koyu temada nof.css body metin rengi beyaz; panel bg-background beyaz.
+   Portal köklerinde koyu metin dayatılmazsa başlık/label/input görünmez olur. */
+const prVis = await page.evaluate(() => {
+  const dlg = document.querySelector('[data-slot="dialog-content"]');
+  const colorOf = (el) => (el ? getComputedStyle(el).color : "");
+  const ctx = document.createElement("canvas").getContext("2d");
+  const isWhite = (c) => {
+    if (!c) return false;
+    ctx.fillStyle = "#000";
+    ctx.fillStyle = c;
+    ctx.fillRect(0, 0, 1, 1);
+    const d = ctx.getImageData(0, 0, 1, 1).data;
+    return d[0] > 240 && d[1] > 240 && d[2] > 240;
+  };
+  const title = dlg?.querySelector('[data-slot="dialog-title"]');
+  const label = dlg?.querySelector("label");
+  const input = dlg?.querySelector("input");
+  return {
+    panelDark: !isWhite(colorOf(dlg)),
+    titleVisible: title ? !isWhite(colorOf(title)) : false,
+    labelVisible: label ? !isWhite(colorOf(label)) : false,
+    inputVisible: input ? !isWhite(colorOf(input)) : false,
+  };
+});
+check("süreç popup: panel metin rengi koyu", prVis.panelDark, JSON.stringify(prVis));
+check("süreç popup: başlık/label/input görünür (beyaz üstüne beyaz yok)", prVis.titleVisible && prVis.labelVisible && prVis.inputVisible, JSON.stringify(prVis));
+await page.screenshot({ path: SHOT + "/cms-process-dialog.png" });
 await page.fill("#p-title", PR_TITLE_NEW);
 await page.getByRole("button", { name: "Kaydet" }).click();
 await page.waitForTimeout(2500);

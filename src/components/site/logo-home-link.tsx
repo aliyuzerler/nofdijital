@@ -11,10 +11,12 @@ import { usePathname } from "next/navigation";
 export function LogoHomeLink({
   src,
   className,
+  style,
   alt = "NOF DİJİTAL",
 }: {
   src: string;
   className?: string;
+  style?: React.CSSProperties;
   alt?: string;
 }) {
   const pathname = usePathname();
@@ -24,7 +26,7 @@ export function LogoHomeLink({
     window.scrollTo({ top: 0, behavior: RM ? "auto" : "smooth" });
   };
   return (
-    <Link href="/" className={className} aria-label="NOF DİJİTAL ana sayfa" onClick={(e) => pathname === "/" && scrollTop(e)}>
+    <Link href="/" className={className} style={style} aria-label="NOF DİJİTAL ana sayfa" onClick={(e) => pathname === "/" && scrollTop(e)}>
       <img src={src} alt={alt} />
     </Link>
   );

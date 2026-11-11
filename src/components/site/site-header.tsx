@@ -84,7 +84,15 @@ export function SiteHeader({ nav, logoUrl }: { nav?: Array<{ label: string; href
     <>
       <header id="hd" className={sc ? "sc" : ""}>
         <div className="wrap">
-          <Link href="/" className="logo" aria-label="NOF DİJİTAL ana sayfa" onClick={(e) => pathname === "/" && scrollTop(e)}>
+          {/* Marka logosu artık mor zeminli blok: nof.css .logo beyaz chip'ini
+              bileşen düzeyinde sıfırlıyoruz (arka plan eklenmez). */}
+          <Link
+            href="/"
+            className="logo"
+            style={{ background: "transparent", padding: 0, borderRadius: 0 }}
+            aria-label="NOF DİJİTAL ana sayfa"
+            onClick={(e) => pathname === "/" && scrollTop(e)}
+          >
             <img src={LOGO_SRC} alt="NOF DİJİTAL" />
           </Link>
           <nav className="m" aria-label="Ana menü">

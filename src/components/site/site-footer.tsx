@@ -53,7 +53,12 @@ export function SiteFooter({
       <div className="wrap">
         <div className="fg4">
           <div>
-            <LogoHomeLink className="lg" src={settings.logoUrl || GALLERY.logo} />
+            {/* Mor zeminli marka logosu: nof.css footer .lg beyaz chip'i sıfırlanır. */}
+            <LogoHomeLink
+              className="lg"
+              style={{ background: "transparent", padding: 0, borderRadius: 0 }}
+              src={settings.logoUrl || GALLERY.logo}
+            />
             <p>Yaratıcı prodüksiyon ve performans odaklı dijital pazarlamayı tek çatıda buluşturan ajans.</p>
             <div className="so">
               {socials.map((s) => (

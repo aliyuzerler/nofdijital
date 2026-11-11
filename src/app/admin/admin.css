@@ -63,6 +63,26 @@ body:has(.admin-root) :where(textarea):not(.alx-root *) {
   color: inherit;
 }
 
+/* ---- Radix portal içeriklerinde metin rengi (2026-11) ----
+   Dialog/Sheet/AlertDialog/Select/Dropdown/Popover portalları .admin-root DIŞINA,
+   body'e bağlanır: nof.css body { color: var(--text) } kalıtılır (koyu temada
+   beyaz). shadcn değişkenleri :root'taki açık tema değerlerinden geldiğinden
+   panel bg-background = BEYAZ; sonuç beyaz-üstüne-beyaz — başlık/label/input/
+   buton metinleri görünmez olur. Portal köklerinde yönetici metin rengini
+   dayatıyoruz (paneller zaten beyaz). */
+body:has(.admin-root)
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="select-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="popover-content"]
+  ) {
+  color: #171717;
+}
+
 /* İnce scrollbar (uzun listeler) */
 .admin-scroll {
   scrollbar-width: thin;

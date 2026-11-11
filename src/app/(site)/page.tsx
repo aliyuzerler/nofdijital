@@ -308,7 +308,8 @@ export default async function HomePage() {
               Güvenilir platformların <em>resmî iş ortağıyız</em>
             </h3>
             <div className="ptn-grid">
-              <div className="ptn-tile me">
+              {/* Mor zeminli marka logosu: karo zeminini şeffaflaştır, logonun arkasına fon eklenmez. */}
+              <div className="ptn-tile me" style={{ background: "transparent" }}>
                 <img src={settings.logoUrl || "/assets/logo.png"} alt="NOF Dijital" />
               </div>
               <div className="ptn-tile">

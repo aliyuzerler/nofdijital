@@ -91,7 +91,8 @@ export function AdminLoginView({ mode }: { mode: Mode }) {
       <div className="alx-glow" aria-hidden />
       <div className="alx-zone">
         <div className="alx-brand">
-          <span className="alx-logo">
+          {/* Mor zeminli logo: beyaz chip (.alx-logo) olmadan, doğal haliyle. */}
+          <span className="alx-logo" style={{ background: "transparent", padding: 0, borderRadius: 0, boxShadow: "none" }}>
             <img src="/assets/logo.png" alt="NOF DİJİTAL" />
           </span>
           <span className="alx-eyb">Yönetim Paneli</span>
