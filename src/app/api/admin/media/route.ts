@@ -58,6 +58,19 @@ const resultSchema = z.object({
 
 export type UploadResult = z.infer<typeof resultSchema>;
 
+/** Depolama hatalarını kullanıcı dostu Türkçe mesaja çevirir. */
+function storageErrorMessage(e: unknown): string {
+  const msg = e instanceof Error ? e.message : String(e);
+  const code = (e as { code?: string } | null)?.code ?? "";
+  if (code === "EROFS" || code === "EACCES" || /read-only|EROFS|EACCES/i.test(msg)) {
+    return "Sunucu diski yazmaya kapalı (Vercel). Medya yüklemesi için Vercel Blob kurulmalı: Vercel > Storage > Blob oluşturun, BLOB_READ_WRITE_TOKEN değişkenini projeye ekleyin ve yeniden deploy edin.";
+  }
+  if (/BLOB_READ_WRITE_TOKEN/i.test(msg)) {
+    return "Vercel Blob token'ı tanımlı değil: BLOB_READ_WRITE_TOKEN değişkenini Vercel proje ayarlarına ekleyin ve yeniden deploy edin.";
+  }
+  return `Depolama hatası: ${msg.slice(0, 160)}`;
+}
+
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) return Response.json({ ok: false, error: "Oturum bulunamadı." }, { status: 401 });
@@ -114,7 +127,9 @@ export async function POST(req: Request) {
       const storedFilename = `${stem}.${ext}`;
       const storageKey = `media/${randomUUID()}-${storedFilename}`;
 
-      const uploaded = await storage.upload(storageKey, buf, sniffed);
+      const uploaded = await storage.upload(storageKey, buf, sniffed).catch((e: unknown) => {
+        throw new Error(storageErrorMessage(e));
+      });
       const assetId = randomUUID();
 
       await db.insert(mediaAssets).values({

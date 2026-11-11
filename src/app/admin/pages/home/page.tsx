@@ -1,5 +1,6 @@
 import { requireUser } from "@/server/auth/guards";
 import { getHomeSectionsAdmin, ensureStatsSection } from "@/features/admin/home/actions";
+import { ensureSiteContentSeeded } from "@/features/admin/bootstrap-data";
 import { HomeSections } from "@/components/admin/home-sections";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,8 @@ export const metadata = { title: "Ana Sayfa Bölümleri" };
 
 export default async function AdminHomePageSectionsPage() {
   await requireUser();
+  // DB seed edilmemişse (ör. üretimde ilk açılış) sitedeki içerik otomatik yazılır.
+  await ensureSiteContentSeeded();
   let data = await getHomeSectionsAdmin();
   // Seed edilmemiş eski DB'lerde stats bölümü yoktur; editörün görünmesi için
   // burada idempotent olarak oluşturulur (admin panelini açan kullanıcı tetikler).

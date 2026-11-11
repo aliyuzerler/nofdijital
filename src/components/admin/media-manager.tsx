@@ -11,6 +11,59 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+/**
+ * Vercel istek gövdesi sınırı 4,5 MB'tır. Büyük telefon/fotoğraf dosyalarını
+ * istemcide küçültüp WebP'ye çevirerek yükleme başarısızlıklarını engeller.
+ * Kanvas desteklenmezse veya sonuç büyürse orijinal dosya kullanılır.
+ */
+async function compressImage(file: File): Promise<File> {
+  if (!/^image\/(jpeg|png|webp|avif)$/i.test(file.type)) return file;
+  const TARGET = 4 * 1024 * 1024; // 4 MB güvenli hedef
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
+    const baseW = Math.max(1, Math.round(bitmap.width * scale));
+    const baseH = Math.max(1, Math.round(bitmap.height * scale));
+    const encodeTypes = file.type === "image/png" ? ["image/webp", "image/png"] : ["image/webp", "image/jpeg"];
+
+    const attempts = [
+      { w: baseW, h: baseH, q: 0.85 },
+      { w: Math.round(baseW * 0.85), h: Math.round(baseH * 0.85), q: 0.7 },
+      { w: Math.min(baseW, 1600), h: Math.round((Math.min(baseW, 1600) / baseW) * baseH), q: 0.55 },
+    ];
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      bitmap.close?.();
+      return file;
+    }
+
+    let best: File | null = null;
+    for (const a of attempts) {
+      canvas.width = a.w;
+      canvas.height = a.h;
+      ctx.drawImage(bitmap, 0, 0, a.w, a.h);
+      for (const type of encodeTypes) {
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, a.q));
+        if (!blob || blob.size === 0) continue;
+        const ext = type === "image/webp" ? ".webp" : type === "image/png" ? ".png" : ".jpg";
+        const stem = file.name.replace(/\.[^.]+$/, "") || "gorsel";
+        const out = new File([blob], `${stem}${ext}`, { type });
+        if (out.size <= TARGET) {
+          bitmap.close?.();
+          return out.size < file.size ? out : file;
+        }
+        if (!best || out.size < best.size) best = out;
+      }
+    }
+    bitmap.close?.();
+    return best && best.size < file.size ? best : file;
+  } catch {
+    return file;
+  }
+}
+
 export function MediaManager({ initialRows }: { initialRows: MediaRow[] }) {
   const router = useRouter();
   const [rows, setRows] = useState<MediaRow[]>(initialRows);
@@ -37,14 +90,23 @@ export function MediaManager({ initialRows }: { initialRows: MediaRow[] }) {
     setUploadCount(list.length);
     try {
       const form = new FormData();
-      for (const f of list) form.append("files", f);
+      for (const f of list) {
+        const prepared = await compressImage(f);
+        form.append("files", prepared);
+      }
       const res = await fetch("/api/admin/media", { method: "POST", body: form });
-      const data = (await res.json()) as {
-        ok: boolean;
-        results?: Array<{ duplicate: boolean }>;
-        errors?: string[];
-        error?: string;
-      };
+      if (res.status === 413) {
+        toast.error("Dosya çok büyük: sunucu 4,5 MB üzeri istekleri reddediyor. Daha küçük bir görsel deneyin.");
+        return;
+      }
+      type UploadResponse = { ok: boolean; results?: Array<{ duplicate: boolean }>; errors?: string[]; error?: string };
+      let data: UploadResponse;
+      try {
+        data = (await res.json()) as UploadResponse;
+      } catch {
+        toast.error(`Yükleme başarısız (HTTP ${res.status}).`);
+        return;
+      }
       if (!data.ok) {
         toast.error(data.error ?? "Yükleme başarısız.");
       } else {
@@ -143,7 +205,7 @@ export function MediaManager({ initialRows }: { initialRows: MediaRow[] }) {
           <>
             <UploadCloud className="h-6 w-6 text-[#9335FF]" aria-hidden />
             <p className="text-sm font-medium text-neutral-700">Dosyaları buraya sürükleyin veya tıklayın</p>
-            <p className="text-xs text-neutral-400">JPEG, PNG, WebP, AVIF · en fazla 10 MB · aynı içerik tekilleştirilir</p>
+            <p className="text-xs text-neutral-400">JPEG, PNG, WebP, AVIF · en fazla 10 MB · büyük görseller otomatik küçültülür · aynı içerik tekilleştirilir</p>
           </>
         )}
         <input

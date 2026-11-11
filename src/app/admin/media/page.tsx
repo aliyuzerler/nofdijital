@@ -2,6 +2,7 @@ import { desc, isNull } from "drizzle-orm";
 import { getDb } from "@/server/db";
 import { mediaAssets } from "@/server/db/schema";
 import { requireUser } from "@/server/auth/guards";
+import { ensureSiteContentSeeded } from "@/features/admin/bootstrap-data";
 import { MediaManager } from "@/components/admin/media-manager";
 import type { MediaRow } from "@/features/admin/media/actions";
 
@@ -11,6 +12,8 @@ export const metadata = { title: "Medya" };
 
 export default async function AdminMediaPage() {
   await requireUser();
+  // DB seed edilmemişse site galerisindeki görseller medya kütüphanesine yazılır.
+  await ensureSiteContentSeeded();
   const db = await getDb();
   const rows = await db.select().from(mediaAssets).where(isNull(mediaAssets.deletedAt)).orderBy(desc(mediaAssets.createdAt)).limit(200);
 

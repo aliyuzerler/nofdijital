@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { updateService, type ServiceRow } from "@/features/admin/services/actions";
+import { createService, deleteService, updateService, type ServiceRow } from "@/features/admin/services/actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const ICON_OPTIONS = [
@@ -30,24 +31,42 @@ const SPAN_OPTIONS = [
   { value: "c6", label: "Dikey (c6)" },
 ];
 
+const EMPTY_FORM = { title: "", description: "", iconKey: "share", spanClass: "c4", styleVariant: "", position: 0, isVisible: true };
+
 export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
   const router = useRouter();
+  // mode null: dialog kapalı; create: yeni hizmet; edit: mevcut satır
+  const [mode, setMode] = useState<"create" | "edit" | null>(null);
   const [target, setTarget] = useState<ServiceRow | null>(null);
-  const [form, setForm] = useState({ title: "", description: "", iconKey: "share", spanClass: "c4", styleVariant: "", position: 0, isVisible: true });
+  const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<ServiceRow | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
-  function open(row: ServiceRow) {
+  function openCreate() {
+    setTarget(null);
+    setForm({ ...EMPTY_FORM, position: rows.reduce((m, r) => Math.max(m, r.position), -1) + 1 });
+    setMode("create");
+  }
+
+  function openEdit(row: ServiceRow) {
     setTarget(row);
     setForm({ title: row.title, description: row.description, iconKey: row.iconKey, spanClass: row.spanClass, styleVariant: row.styleVariant, position: row.position, isVisible: row.isVisible });
+    setMode("edit");
   }
 
   async function save() {
-    if (!target) return;
     setSaving(true);
     try {
-      const res = await updateService({ id: target.id, ...form });
+      const res =
+        mode === "create"
+          ? await createService({ ...form })
+          : target
+            ? await updateService({ id: target.id, ...form })
+            : { ok: false as const, error: "Hizmet bulunamadı." };
       if (res.ok) {
-        toast.success("Hizmet güncellendi.");
+        toast.success(mode === "create" ? "Hizmet eklendi." : "Hizmet güncellendi.");
+        setMode(null);
         setTarget(null);
         router.refresh();
       } else {
@@ -58,8 +77,34 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
     }
   }
 
+  async function confirmDelete() {
+    if (!deleting || deleteBusy) return;
+    setDeleteBusy(true);
+    try {
+      const res = await deleteService({ id: deleting.id });
+      if (res.ok) {
+        toast.success("Hizmet silindi.");
+        setDeleting(null);
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
+    } finally {
+      setDeleteBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-neutral-500">
+          {rows.length > 0 ? `${rows.length} hizmet` : "Henüz hizmet yok."}
+        </p>
+        <Button onClick={openCreate} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
+          <Plus className="h-4 w-4" /> Yeni Hizmet
+        </Button>
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         <div className="admin-scroll max-h-[36rem] overflow-y-auto">
           <Table>
@@ -70,14 +115,14 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
                 <TableHead className="hidden md:table-cell">Yerleşim</TableHead>
                 <TableHead>Sıra</TableHead>
                 <TableHead>Durum</TableHead>
-                <TableHead className="w-12" aria-label="İşlemler" />
+                <TableHead className="w-20" aria-label="İşlemler" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-10 text-center text-sm text-neutral-500">
-                    Hizmet bulunamadı.
+                    Hizmet bulunamadı. Sağ üstteki “Yeni Hizmet” ile ekleyin.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -105,9 +150,14 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" aria-label={`${r.title} düzenle`} onClick={() => open(r)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" aria-label={`${r.title} düzenle`} onClick={() => openEdit(r)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" aria-label={`${r.title} sil`} onClick={() => setDeleting(r)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -117,10 +167,10 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
         </div>
       </div>
 
-      <Dialog open={target !== null} onOpenChange={(v) => !v && setTarget(null)}>
+      <Dialog open={mode !== null} onOpenChange={(v) => !v && setMode(null)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Hizmeti düzenle</DialogTitle>
+            <DialogTitle>{mode === "create" ? "Yeni Hizmet" : "Hizmeti düzenle"}</DialogTitle>
             <DialogDescription>Değişiklikler ana sayfa kartlarına anında yansır.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -202,7 +252,7 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setTarget(null)}>
+            <Button variant="outline" onClick={() => setMode(null)}>
               Vazgeç
             </Button>
             <Button onClick={() => void save()} disabled={saving} className="bg-[#9335FF] text-white hover:bg-[#8426F2]">
@@ -211,6 +261,30 @@ export function ServicesManager({ rows }: { rows: ServiceRow[] }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleting !== null} onOpenChange={(v) => !v && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hizmet silinsin mi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              “{deleting?.title}” ana sayfadaki hizmet kartlarından kaldırılır. Bu işlem geri alınamaz.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Vazgeç</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={deleteBusy}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmDelete();
+              }}
+            >
+              {deleteBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Sil
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

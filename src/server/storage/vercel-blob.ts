@@ -41,8 +41,13 @@ export class VercelBlobProvider implements StorageProvider {
   }
 
   async delete(key: string): Promise<void> {
-    const { del } = await this.sdk();
-    await del(key);
+    // Blob'da kayıt yoksa hata vermesin (lokal adapter davranışıyla uyumlu).
+    try {
+      const { del } = await this.sdk();
+      await del(key);
+    } catch {
+      /* yok say */
+    }
   }
 
   async copy(fromKey: string, toKey: string): Promise<{ key: string; publicUrl: string }> {

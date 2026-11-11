@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/server/db";
 import { services } from "@/server/db/schema";
@@ -20,6 +20,22 @@ const updateSchema = z.object({
   position: z.coerce.number().int().min(0).max(99),
   isVisible: z.boolean(),
 });
+
+const createSchema = updateSchema.omit({ id: true }).extend({
+  position: z.coerce.number().int().min(0).max(99).optional(),
+  isVisible: z.boolean().optional(),
+});
+
+/** Başlıktan URL uyumlu slug üretir (Türkçe karakter dönüşümüyle). */
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replaceAll("ı", "i").replaceAll("İ", "i").replaceAll("ş", "s").replaceAll("Ş", "s")
+    .replaceAll("ğ", "g").replaceAll("Ğ", "g").replaceAll("ü", "u").replaceAll("Ü", "u")
+    .replaceAll("ö", "o").replaceAll("Ö", "o").replaceAll("ç", "c").replaceAll("Ç", "c")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
 
 export interface ServiceRow {
   id: string;
@@ -52,6 +68,61 @@ export async function listServicesAdmin(): Promise<ServiceRow[]> {
   } catch {
     return [];
   }
+}
+
+export async function createService(raw: unknown) {
+  return runAction(["owner", "editor"], async (user) => {
+    const input = createSchema.parse(raw);
+    const db = await getDb();
+
+    // Benzersiz slug üret (aynı başlıktan ikinci hizmet eklenebilsin).
+    const base = slugify(input.title) || "hizmet";
+    let slug = base;
+    for (let n = 2; n <= 60; n++) {
+      const taken = await db.select({ id: services.id }).from(services).where(eq(services.slug, slug)).limit(1);
+      if (!taken.length) break;
+      slug = `${base}-${n}`;
+    }
+
+    let position = input.position;
+    if (position === undefined) {
+      const maxRow = await db.select({ p: services.position }).from(services).orderBy(desc(services.position)).limit(1);
+      position = (maxRow[0]?.p ?? -1) + 1;
+    }
+
+    await db
+      .insert(services)
+      .values({
+        title: input.title,
+        slug,
+        description: input.description,
+        iconKey: input.iconKey,
+        spanClass: input.spanClass,
+        styleVariant: input.styleVariant,
+        position,
+        isVisible: input.isVisible ?? true,
+      })
+      .onConflictDoNothing();
+    const row = (await db.select({ id: services.id }).from(services).where(eq(services.slug, slug)).limit(1))[0];
+    if (!row) return fail("Hizmet oluşturulamadı.");
+
+    await logAudit({ actor: user, action: "service.create", entityType: "service", entityId: row.id, metadata: { slug } });
+    revalidatePath("/");
+    return ok();
+  });
+}
+
+export async function deleteService(raw: unknown) {
+  return runAction(["owner", "editor"], async (user) => {
+    const input = z.object({ id: z.string().uuid() }).parse(raw);
+    const db = await getDb();
+    const rows = await db.select({ slug: services.slug }).from(services).where(eq(services.id, input.id)).limit(1);
+    if (!rows[0]) return fail("Hizmet bulunamadı.");
+    await db.delete(services).where(eq(services.id, input.id));
+    await logAudit({ actor: user, action: "service.delete", entityType: "service", entityId: input.id, metadata: { slug: rows[0].slug } });
+    revalidatePath("/");
+    return ok();
+  });
 }
 
 export async function updateService(raw: unknown) {
