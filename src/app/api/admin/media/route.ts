@@ -63,10 +63,10 @@ function storageErrorMessage(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e);
   const code = (e as { code?: string } | null)?.code ?? "";
   if (code === "EROFS" || code === "EACCES" || /read-only|EROFS|EACCES/i.test(msg)) {
-    return "Sunucu diski yazmaya kapalı (Vercel). Medya yüklemesi için Vercel Blob kurulmalı: Vercel > Storage > Blob oluşturun, BLOB_READ_WRITE_TOKEN değişkenini projeye ekleyin ve yeniden deploy edin.";
+    return "Sunucu diski yazmaya kapalı (Vercel). Medya yüklemesi için Vercel Blob gerekli: Vercel > Depolama > Blob mağazası oluşturup projeye bağlayın (bağlantı sırasında 'Add a read-write token' işaretleyin) ve yeniden deploy edin.";
   }
-  if (/BLOB_READ_WRITE_TOKEN/i.test(msg)) {
-    return "Vercel Blob token'ı tanımlı değil: BLOB_READ_WRITE_TOKEN değişkenini Vercel proje ayarlarına ekleyin ve yeniden deploy edin.";
+  if (/BLOB_READ_WRITE_TOKEN|no token found|kimlik bilgisi tanımlı değil/i.test(msg)) {
+    return "Vercel Blob kimlik bilgisi bulunamadı. Çözüm: Vercel > Depolama > Blob mağazası > Projects sekmesi > proje bağlantısını güncelleyip 'Add a read-write token' seçeneğini işaretleyin veya OIDC bağlantısını (BLOB_STORE_ID) etkinleştirin; ardından yeniden deploy edin.";
   }
   return `Depolama hatası: ${msg.slice(0, 160)}`;
 }

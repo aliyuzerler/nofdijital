@@ -10,8 +10,11 @@ export class VercelBlobProvider implements StorageProvider {
   readonly name = "vercel-blob";
 
   private async sdk() {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      throw new Error("BLOB_READ_WRITE_TOKEN tanımlı değil");
+    // İki kimlik modu: (1) klasik BLOB_READ_WRITE_TOKEN, (2) OIDC — BLOB_STORE_ID +
+    // Vercel'in çalışma anında otomatik sağladığı VERCEL_OIDC_TOKEN. İkisi de yoksa
+    // SDK kendi "No token found" hatasını verir; burada erken ve net uyarı veriyoruz.
+    if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) {
+      throw new Error("Vercel Blob kimlik bilgisi tanımlı değil (BLOB_READ_WRITE_TOKEN veya BLOB_STORE_ID)");
     }
     return import("@vercel/blob");
   }
