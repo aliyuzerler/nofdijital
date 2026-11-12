@@ -20,7 +20,7 @@ export const DEFAULT_ACCENTS: Record<string, string> = {
   services: "tek çatı altında.",
   gallery: "duvarı",
   stats: "fark edemezler!",
-  about: "stratejiyle",
+  about: "Yaratıcılığı stratejiyle,",
   process: "net bir yol.",
   "blog-preview": "yazılar",
   contact: "hazır mısınız?",

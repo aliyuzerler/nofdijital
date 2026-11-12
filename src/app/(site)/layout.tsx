@@ -66,18 +66,19 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             "#hd .logo img{height:44px;border-radius:10px}#hd.sc .logo img{height:36px;border-radius:9px}footer .lg img{height:52px;border-radius:12px}",
         }}
       />
-      {/* Bölüm başlığı vurgu tonlaması (12.11.2026 kullanıcı onayı): nof.css'e
-          dokunmadan eklenen tema duyarlı kurallar. .acc-pl → açık mor (#b9a0ef,
-          açık temada ana mor #8254d8), .acc-vivid → canlı mor (#9335ff, her iki
-          temada okunur), .ptn h3 em → beyaz kart üstünde koyu mor (#58349d).
-          Vurgulu em'lerde italik kapatılır — hero/.ab/.stb vurgularıyla aynı dil. */}
+      {/* Bölüm başlığı vurgu tonlaması (13.11.2026 güncelleme — kullanıcı talebi:
+          "tüm vurgular tek ton"). Artık TEK ton ailesi: koyu tema/ koyu zemin →
+          --pl (#b9a0ef), açık tema ve beyaz kart → --p (#8254d8). nof.css'teki
+          sapmalar (#9335ff .stb-title em) burada ezilir; .acc-vivid da aynı tona
+          çekildi (kontak+stats artık ayrı renk değil). Beyaz .ptn kartında
+          okunabilirlik için --p kullanılır — 4.5:1 kontrast, aynı mor ailesi.
+          Vurgulu em'lerde italik kapatılır — hero/.ab vurgularıyla aynı dil. */}
       <style
         dangerouslySetInnerHTML={{
           __html:
-            "#v-home .acc-pl{color:#b9a0ef;font-style:normal}" +
-            'html[data-theme="light"] #v-home .acc-pl{color:#8254d8}' +
-            "#v-home .acc-vivid{color:#9335ff;font-style:normal}" +
-            "#v-home .ptn h3 em{color:#58349d}",
+            "#v-home .acc-pl,#v-home .acc-vivid,#v-home .stb-title em{color:var(--pl);font-style:normal}" +
+            'html[data-theme="light"] #v-home .acc-pl,html[data-theme="light"] #v-home .acc-vivid,html[data-theme="light"] #v-home .stb-title em{color:var(--p)}' +
+            "#v-home .ptn h3 em{color:var(--p);font-style:normal}",
         }}
       />
       <IconSprite />

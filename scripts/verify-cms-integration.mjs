@@ -8,9 +8,11 @@
  *  5) Site paritesi: hizmetler/duvar/sayaç admin'den besleniyor
  *  6) Menü: STATİK (header+footer Referanslarımız; admin Menü paneli kaldırıldı → 404)
  *  6b) Bölüm başlıkları: Süreç + Hakkımızda başlığı admin'den sitede yayınlanır
- *  6c) Vurgu tonlaması: 9 bölüm vurgusu renk doğru (koyu+açık tema), accent
- *      başlıkta yoksa son kelime otomatik vurgulanır (fallback), admin'de
- *      "Vurgulu kelime" alanı 7 başlıklı bölümde görünür
+ *  6c) Vurgu tonlaması: TEK TON — tüm vurgular koyu temada açık mor (--pl),
+ *      açık zemin/kartta ana mor (--p); hero 2. ve 3. satır, hakkımızda
+ *      ifadesi dahil metin doğrulaması; accent başlıkta yoksa son kelime
+ *      otomatik vurgulanır (fallback), admin'de "Vurgulu kelime" alanı
+ *      7 başlıklı bölümde görünür
  *  7) Logo: Genel Ayarlar'dan logo yükle → Kaydet → sitede aktif; varsayılana dön
  *  8) Süreç: popup düzenleme round-trip
  * Çalıştırma: sunucu ayaktayken `bun scripts/verify-cms-integration.mjs`
@@ -349,19 +351,21 @@ const abAccentVal = await page
   .first()
   .getByLabel("Vurgulu kelime")
   .inputValue();
-check("admin: Hakkımızda vurgu alanı varsayılanla dolu", abAccentVal === "stratejiyle", abAccentVal);
+check("admin: Hakkımızda vurgu alanı varsayılanla dolu", abAccentVal === "Yaratıcılığı stratejiyle,", abAccentVal);
 
 // Statik menü: header VE footer'da Referanslarımız; kaydırma davranışı korunuyor
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 await page.waitForTimeout(800);
 
-/* ---- 4c-2) VURGU TONLAMASI — koyu tema (9 bölüm) ---- */
+/* ---- 4c-2) VURGU TONLAMASI — koyu tema (11 vurgu, TEK TON) ---- */
 const accDump = await page.evaluate(() => {
   const pick = (sel) => {
     const el = document.querySelector(sel);
     return el ? getComputedStyle(el).color : "yok";
   };
   return {
+    hero2: pick("#top h1 .ln:nth-child(2) em"),
+    hero3: pick("#top h1 .ln:nth-child(3) em"),
     hizmetler: pick("#hizmetler h2 span.acc-pl"),
     galeri: pick("#calismalar .wh1 h2 em.acc-pl"),
     istatistik: pick(".stb-title em"),
@@ -373,20 +377,29 @@ const accDump = await page.evaluate(() => {
     partner: pick("#iletisim .ptn h3 em"),
   };
 });
+const accText = await page.evaluate(() => ({
+  hero3: document.querySelector("#top h1 .ln:nth-child(3) em")?.textContent ?? "",
+  about: document.querySelector("#hakkimizda h2 em")?.textContent ?? "",
+}));
+// TEK TON (kullanıcı talebi 13.11.2026): tüm vurgular aynı mor — koyu temada --pl,
+// beyaz kart dahil açık zeminlerde --p. #9335ff / #58349d artık hiçbir yerde yok.
 const MOR_ACIK = "rgb(185, 160, 239)";
-const MOR_CANLI = "rgb(147, 53, 255)";
-const MOR_KOYU = "rgb(88, 52, 157)";
+const MOR_ANA = "rgb(130, 84, 216)";
+check("vurgu: Hero satır2 'doğru' açık mor", accDump.hero2 === MOR_ACIK, accDump.hero2);
+check("vurgu: Hero satır3 'stratejiyle başlar.' açık mor", accDump.hero3 === MOR_ACIK, accDump.hero3);
+check("vurgu: Hero satır3 vurgu metni doğru", accText.hero3 === "stratejiyle başlar.", accText.hero3);
 check("vurgu: Hizmetler 'tek çatı altında.' açık mor", accDump.hizmetler === MOR_ACIK, accDump.hizmetler);
 check("vurgu: Galeri son kelime açık mor", accDump.galeri === MOR_ACIK, accDump.galeri);
-check("vurgu: İstatistik canlı mor", accDump.istatistik === MOR_CANLI, accDump.istatistik);
+check("vurgu: İstatistik açık mor (tek ton)", accDump.istatistik === MOR_ACIK, accDump.istatistik);
 check("vurgu: Referanslar açık mor", accDump.referanslar === MOR_ACIK, accDump.referanslar);
 check("vurgu: Hakkımızda açık mor", accDump.hakkimizda === MOR_ACIK, accDump.hakkimizda);
+check("vurgu: Hakkımızda vurgu metni 'Yaratıcılığı stratejiyle,'", accText.about === "Yaratıcılığı stratejiyle,", accText.about);
 check("vurgu: Süreç açık mor (tema duyarlı)", accDump.surec === MOR_ACIK, accDump.surec);
 check("vurgu: Blog açık mor", accDump.blog === MOR_ACIK, accDump.blog);
-check("vurgu: İletişim canlı mor", accDump.iletisim === MOR_CANLI, accDump.iletisim);
-check("vurgu: Partner kartı koyu mor", accDump.partner === MOR_KOYU, accDump.partner);
+check("vurgu: İletişim açık mor (tek ton)", accDump.iletisim === MOR_ACIK, accDump.iletisim);
+check("vurgu: Partner kartı ana mor (beyaz zemin, tek ton)", accDump.partner === MOR_ANA, accDump.partner);
 
-// Açık tema: .acc-pl ana mora döner (kontrast 4.6+), canlı mor korunur
+// Açık tema: tüm vurgular (beyaz kart dahil) ana mora döner (kontrast 4.6+)
 await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
 await page.waitForTimeout(400);
 const accLight = await page.evaluate(() => {
@@ -397,13 +410,14 @@ const accLight = await page.evaluate(() => {
   return {
     hizmetler: pick("#hizmetler h2 span.acc-pl"),
     surec: pick("#surec h2 span.acc-pl"),
+    istatistik: pick(".stb-title em"),
     iletisim: pick("#iletisim h2 span.acc-vivid"),
   };
 });
-const MOR_ANA = "rgb(130, 84, 216)";
 check("vurgu: açık temada Hizmetler ana mor", accLight.hizmetler === MOR_ANA, accLight.hizmetler);
 check("vurgu: açık temada Süreç ana mor (soluk değil)", accLight.surec === MOR_ANA, accLight.surec);
-check("vurgu: açık temada İletişim canlı mor", accLight.iletisim === MOR_CANLI, accLight.iletisim);
+check("vurgu: açık temada İstatistik ana mor", accLight.istatistik === MOR_ANA, accLight.istatistik);
+check("vurgu: açık temada İletişim ana mor (tek ton)", accLight.iletisim === MOR_ANA, accLight.iletisim);
 await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
 await page.waitForTimeout(200);
 const refLink = page.locator("header#hd nav.m a", { hasText: "Referanslarımız" });

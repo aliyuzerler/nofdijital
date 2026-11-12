@@ -17,9 +17,10 @@ const CLS = ["s7", "s5", "s5", "s7"];
  *  - "Vurgulu kelime" başlıkta geçiyorsa o bölüm vurgulanır (Türkçe harf
  *    duyarsız eşleşme: Büyük/küçük, İ/ı fark etmez).
  *  - Geçmiyorsa SON kelime otomatik vurgulanır; başlık asla düz beyaz kalmaz.
- * Renk: tone="pl" → açık mor (koyu tema) / ana mor (açık tema), tone="vivid"
- * → canlı mor (iletişim CTA). Tanımsızsa nof.css'in kendi em kuralları
- * (ör. .ab h2 em) devreye girer — inline stil YOK, tema duyarlılığı korunur.
+ * Renk (13.11.2026 güncelleme — TEK TON): tone="pl"/"vivid" ve .stb/hero/.ab
+ * em'leri tek mor ailesinde — koyu zemin --pl, açık zemin/beyaz kart --p
+ * (layout scoped CSS). Tanımsızsa nof.css'in kendi em kuralları devreye girer
+ * — inline stil YOK, tema duyarlılığı korunur.
  */
 function AccentedTitle({
   text,
@@ -167,6 +168,9 @@ export default async function HomePage() {
           <div className="in-load">
             <span className="eyb">{sections.hero?.eyebrow ?? "Yaratıcı prodüksiyon × Performans pazarlama"}</span>
             <h1>
+              {/* Vurgu (13.11.2026 kullanıcı talebi): "doğru stratejiyle başlar."
+                  — satır 2'deki "doğru" ile satır 3'ün tamamı birlikte em ile
+                  vurgulanır (renk: nof.css .hero h1 em → --pl / --p, tek ton). */}
               {SITE.heroTitleLines.map((line, i) => (
                 <span className="ln" key={line}>
                   <span>
@@ -174,6 +178,8 @@ export default async function HomePage() {
                       <>
                         yaratmak, <em>doğru</em>
                       </>
+                    ) : i === 2 ? (
+                      <em>stratejiyle başlar.</em>
                     ) : (
                       line
                     )}
