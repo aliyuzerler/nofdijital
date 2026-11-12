@@ -9,8 +9,11 @@ export class LocalStorageProvider implements StorageProvider {
   private baseDir: string;
   private urlPrefix = "/uploads";
 
-  constructor(baseDir?: string) {
-    this.baseDir = resolve(process.cwd(), baseDir ?? "public/uploads");
+  constructor() {
+    // Statik yol: dinamik baseDir hiçbir çağrı noktasında kullanılmıyordu ve
+    // Turbopack "Dynamic filesystem access causes tracing of the whole project"
+    // uyarısını tetikliyordu (build çıktısının tamamını izlemeye alıyordu).
+    this.baseDir = resolve(process.cwd(), "public/uploads");
   }
 
   private abs(key: string): string {
