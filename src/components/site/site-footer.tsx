@@ -5,14 +5,13 @@ import type { PublicSettings } from "@/server/services/settings";
 import type { ServiceView } from "@/server/services/repositories";
 
 /**
- * Footer — tamamen yönetim panelinden beslenir:
- *  - Menü sütunu: admin > Menü (navigation_items); boşsa varsayılan liste.
- *  - Hizmetler sütunu: admin > Hizmetler (services); boşsa referans liste.
- *  - İletişim sütunu + sosyal linkler: admin > Genel Ayarlar (site_settings).
+ * Footer — hizmetler sütunu admin > Hizmetler'den, iletişim + sosyal linkler
+ * Genel Ayarlar'dan beslenir. Menü sütunu STATİKTİR: admin > Menü paneli
+ * kaldırıldı (12.11.2026) — manuel sekmeler yönlendirme yapamıyordu.
  * DB boşken görsel birebir korunur (fallback değerleri).
  */
 
-const DEFAULT_NAV = [
+const MENU = [
   { label: "Ana Sayfa", href: "/" },
   { label: "Hizmetler", href: "/#hizmetler" },
   { label: "Çalışmalarımız", href: "/#calismalar" },
@@ -24,14 +23,12 @@ const DEFAULT_NAV = [
 
 export function SiteFooter({
   settings,
-  nav,
   services,
 }: {
   settings: PublicSettings;
-  nav: Array<{ label: string; href: string }>;
   services: ServiceView[];
 }) {
-  const menuItems = nav.length > 0 ? nav : DEFAULT_NAV;
+  const menuItems = MENU;
   const serviceTitles =
     services.length > 0 ? services.map((s) => s.title) : SERVICES.map((s) => s.title);
 

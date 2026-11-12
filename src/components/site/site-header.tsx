@@ -6,8 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { ThemeToggle } from "./theme-toggle";
 import { GALLERY } from "@/content/reference-data";
 
-/** DB'de menü öğesi yokken kullanılan varsayılan liste (görsel parite). */
-const DEFAULT_NAV = [
+/**
+ * Statik site menüsü — admin > Menü paneli kaldırıldı (12.11.2026).
+ * Manuel eklenen sekmeler yönlendirme yapamadığı için menü artık tamamen
+ * burada tanımlı; yönlendirmeler goSection ile tek noktadan yönetilir.
+ */
+const NAV = [
   { label: "Ana Sayfa", href: "/" },
   { label: "Hizmetler", href: "/#hizmetler" },
   { label: "Çalışmalarımız", href: "/#calismalar" },
@@ -17,9 +21,7 @@ const DEFAULT_NAV = [
   { label: "İletişim", href: "/#iletisim" },
 ];
 
-export function SiteHeader({ nav, logoUrl }: { nav?: Array<{ label: string; href: string }>; logoUrl?: string }) {
-  // Admin > Menü'den gelen öğeler; liste boşsa varsayılan menü gösterilir.
-  const NAV = nav && nav.length > 0 ? nav : DEFAULT_NAV;
+export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
   // Admin > Genel Ayarlar'dan yüklenen logo; tanımsızsa statik marka logosu.
   const LOGO_SRC = logoUrl || GALLERY.logo;
   const [sc, setSc] = useState(false);

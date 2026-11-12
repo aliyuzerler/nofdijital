@@ -10,6 +10,35 @@ import { GALLERY, SITE } from "@/content/reference-data";
 const CLS = ["s7", "s5", "s5", "s7"];
 
 /**
+ * Başlığı DB'den basar; admin > Ana Sayfa > Bölüm kartındaki "Başlık" alanını
+ * sitede yayınlar. "Vurgulu kelime" (accent) başlık içinde geçiyorsa site
+ * diline uygun etiketle (process: renkli span, about: em) vurgulanır;
+ * geçmiyorsa başlık düz metin olarak basılır (görsel bozulmaz).
+ */
+function AccentedTitle({
+  text,
+  accent,
+  tag = "span",
+  style,
+}: {
+  text: string;
+  accent?: string;
+  tag?: "span" | "em";
+  style?: React.CSSProperties;
+}) {
+  if (!accent || !text.includes(accent)) return <>{text}</>;
+  const i = text.indexOf(accent);
+  const Tag = tag;
+  return (
+    <>
+      {text.slice(0, i)}
+      <Tag style={style}>{accent}</Tag>
+      {text.slice(i + accent.length)}
+    </>
+  );
+}
+
+/**
  * force-dynamic: İçerik tamamen DB'den beslenir (admin paneli düzenlemeleri).
  * Statik prerender yapılsaydı admin'de yapılan düzenlemeler siteye yansıması
  * için yeniden deploy gerekirdi (kullanıcı raporu: "düzenler görüntülenmiyor").
@@ -29,6 +58,7 @@ export default async function HomePage() {
 
   const hero = sections.hero?.body ?? {};
   const about = sections.about?.body ?? {};
+  const process = sections.process?.body ?? {};
   const contact = sections.contact?.body ?? {};
   const blogCta = (sections["blog-preview"]?.body as { cta?: { label?: string; href?: string } } | undefined)?.cta;
 
@@ -180,7 +210,11 @@ export default async function HomePage() {
               {sections.about?.eyebrow ?? "Hakkımızda"}
             </span>
             <h2 data-r>
-              Yaratıcılığı <em>stratejiyle</em>, stratejiyi ölçülebilir sonuçlarla birleştiriyoruz.
+              <AccentedTitle
+                text={sections.about?.title ?? "Yaratıcılığı stratejiyle, stratejiyi ölçülebilir sonuçlarla birleştiriyoruz."}
+                accent={(about.accent as string) ?? "stratejiyle"}
+                tag="em"
+              />
             </h2>
             <p className="lead" data-r>
               {aboutLead}
@@ -214,7 +248,12 @@ export default async function HomePage() {
             {sections.process?.eyebrow ?? "Çalışma Sürecimiz"}
           </span>
           <h2 className="h2" data-r>
-            Beş adımda, <span style={{ color: "var(--pl)" }}>net bir yol.</span>
+            <AccentedTitle
+              text={sections.process?.title ?? "Beş adımda, net bir yol."}
+              accent={(process.accent as string) ?? "net bir yol."}
+              tag="span"
+              style={{ color: "var(--pl)" }}
+            />
           </h2>
           <div className="pr" id="prc">
             {steps.map((p, i) => (

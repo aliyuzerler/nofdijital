@@ -6,7 +6,8 @@
  *  3) Portfolyo: 14 görsel otomatik görünür + ekle/çıkar/değiştir + duvar sayacı
  *  4) Medya: 15 varlık + küçük ve büyük (>4.5MB) dosya yükleme
  *  5) Site paritesi: hizmetler/duvar/sayaç admin'den besleniyor
- *  6) Menü: açılır listeden "/#referanslar" öğesi + header yönlendirme/kaydırma testleri
+ *  6) Menü: STATİK (header+footer Referanslarımız; admin Menü paneli kaldırıldı → 404)
+ *  6b) Bölüm başlıkları: Süreç + Hakkımızda başlığı admin'den sitede yayınlanır
  *  7) Logo: Genel Ayarlar'dan logo yükle → Kaydet → sitede aktif; varsayılana dön
  *  8) Süreç: popup düzenleme round-trip
  * Çalıştırma: sunucu ayaktayken `bun scripts/verify-cms-integration.mjs`
@@ -262,28 +263,58 @@ await page.getByRole("button", { name: "Kaydet" }).click();
 await page.waitForTimeout(2000);
 await page.screenshot({ path: SHOT + "/cms-process.png" });
 
-/* ---- 4c) MENÜ: açılır hedef + yönlendirme testleri (Sorun 1 ve 2) ---- */
-await page.goto(BASE + "/admin/navigation", { waitUntil: "networkidle" });
+/* ---- 4c) STATİK MENÜ + BÖLÜM BAŞLIKLARI (Sorun 2 ve 3) ---- */
+// Admin menü paneli kaldırıldı: sidebar'da "Menü" yok, /admin/navigation 404.
+await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);
-// Bootstrap 7 varsayılan öğe açar (Referanslarımız dahil); serbest hedef yerine
-// açılır listeden seçim çalışmalı: yeni öğeyi "/#referanslar" ile ekle.
-await page.getByRole("button", { name: "Yeni öğe" }).click();
-await page.waitForTimeout(400);
-await page.fill("#n-label", "Referanslarımız E2E");
-await page.selectOption("#n-href", "/#referanslar");
-await page.getByRole("button", { name: "Kaydet" }).click();
-await page.waitForTimeout(2500);
-const navRows = await page.locator("table tbody tr").count();
-check("menü: seed 7 + 1 yeni öğe", navRows === 8, `rows=${navRows}`);
-const navBody = await page.textContent("body");
-check("menü: hedef /#referanslar kaydedildi", navBody.includes("/#referanslar"), "");
+const sideBody = await page.textContent("body");
+check("admin: Menü paneli kaldırıldı (sidebar'da yok)", !sideBody.includes("Site Menüsü"), "");
+await page.goto(BASE + "/admin/navigation", { waitUntil: "domcontentloaded" });
+await page.waitForTimeout(1000);
+const nav404 = await page.evaluate(() => /404|bulunamadı|could not be found/i.test(document.body.innerText));
+check("admin: /admin/navigation 404 veriyor", nav404, page.url());
 
-// header bağlantıları ve kaydırma davranışı (DB menüsü aktif)
+// Süreç başlığı round-trip: admin > Ana Sayfa > Süreç kartı → site #surec h2
+await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const procCard = page.locator('[data-slot="card"]', { hasText: "Süreç" }).first();
+await procCard.getByLabel("Başlık").fill("Beş adımda, kesin sonuç E2E.");
+await procCard.getByLabel("Vurgulu kelime").fill("kesin sonuç E2E.");
+await procCard.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+const surecH2 = await page.textContent("#surec h2");
+check("site: Süreç başlığı admin'den yayınlanıyor", (surecH2 ?? "").includes("kesin sonuç E2E."), (surecH2 ?? "yok").trim());
+await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const procCard2 = page.locator('[data-slot="card"]', { hasText: "Süreç" }).first();
+await procCard2.getByLabel("Başlık").fill("Beş adımda, net bir yol.");
+await procCard2.getByLabel("Vurgulu kelime").fill("net bir yol.");
+await procCard2.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+
+// Hakkımızda başlığı round-trip: admin > Ana Sayfa > Hakkımızda kartı → site #hakkimizda h2
+const abCard = page.locator('[data-slot="card"]', { hasText: "Hakkımızda" }).first();
+await abCard.getByLabel("Başlık").fill("Ajans ruhuyla, ölçülebilir sonuç E2E.");
+await abCard.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+const abH2 = await page.textContent("#hakkimizda h2");
+check("site: Hakkımızda başlığı admin'den yayınlanıyor", (abH2 ?? "").includes("ölçülebilir sonuç E2E."), (abH2 ?? "yok").trim());
+await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const abCard2 = page.locator('[data-slot="card"]', { hasText: "Hakkımızda" }).first();
+await abCard2.getByLabel("Başlık").fill("Yaratıcılığı stratejiyle, stratejiyi ölçülebilir sonuçlarla birleştiriyoruz.");
+await abCard2.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+
+// Statik menü: header VE footer'da Referanslarımız; kaydırma davranışı korunuyor
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 await page.waitForTimeout(800);
-const refLink = page.locator("header#hd nav.m a", { hasText: "Referanslarımız E2E" });
-check("header: yeni Referanslarımız linki var", (await refLink.count()) === 1, "");
+const refLink = page.locator("header#hd nav.m a", { hasText: "Referanslarımız" });
+check("header: Referanslarımız linki var (statik menü)", (await refLink.count()) === 1, "");
 check("header: Referanslarımız href doğruden", (await refLink.getAttribute("href")) === "/#referanslar", "");
+check("footer: Referanslarımız linki var", (await page.locator('footer a[href="/#referanslar"]').count()) === 1, "");
 // sayfa sonuna in → Referanslarımız'a tıkla → bölüm başına kaymalı
 await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
 await page.waitForTimeout(600);
@@ -317,11 +348,6 @@ await page.waitForTimeout(1200);
 const backY = await page.evaluate(() => window.scrollY);
 check("header: blogdan Ana Sayfa'ya yönlendirme", page.url() === BASE + "/" && backY < 10, `url=${page.url()} y=${backY}`);
 await page.screenshot({ path: SHOT + "/cms-nav.png" });
-// temizlik: test öğesini sil; diğer öğeler kalır
-await page.goto(BASE + "/admin/navigation", { waitUntil: "networkidle" });
-await page.waitForTimeout(1000);
-await page.getByRole("button", { name: "Referanslarımız E2E sil" }).click();
-await page.waitForTimeout(2000);
 
 /* ---- 4d) LOGO: Genel Ayarlar'dan yükle → kaydet → sitede aktif (Sorun 4) ---- */
 await page.goto(BASE + "/admin/settings/general", { waitUntil: "networkidle" });

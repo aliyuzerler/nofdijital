@@ -62,7 +62,8 @@ const NAV_SECTIONS: NavSection[] = [
       { href: "/admin/services", label: "Hizmetler", icon: Briefcase },
       { href: "/admin/process", label: "Süreç", icon: ListOrdered },
       { href: "/admin/portfolio", label: "Portfolyo", icon: Images },
-      { href: "/admin/navigation", label: "Menü", icon: Menu, ownerOnly: true },
+      // Menü paneli kaldırıldı (12.11.2026): manuel sekmeler yönlendirme
+      // yapamıyordu; menü artık sitede statik (site-header/site-footer).
     ],
   },
   {
