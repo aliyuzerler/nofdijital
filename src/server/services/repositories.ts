@@ -263,6 +263,50 @@ export async function getPublishedPost(slug: string): Promise<PostDetail | null>
   }, null);
 }
 
+/**
+ * SELF-HEAL (13.11.2026): prod DB'sinde eski kayıttan kalmış bilinen vurgu
+ * değerleri, build ortamından bağımsız olarak site ilk kez istendiğinde
+ * düzeltilir (build-time fix-stale-accents script'ine ek güvenlik ağı).
+ * Yalnızca BİLİNEN eski değerler regex ile eşleşirse yazılır — admin'in
+ * sonradan girdiği diğer değerler ASLA ezilmez. Tüm hatalar sessizce yutulur;
+ * render asla etkilenmez. Kalıcı DB düzeltmesinden sonra askiya alınır.
+ */
+const STALE_ACCENTS: Record<string, { re: RegExp; want: string }> = {
+  process: { re: /^\s*yol\s*\.?\s*$/i, want: "net bir yol." },
+  about: { re: /^\s*stratejiyle\s*,?\s*$/i, want: "Yaratıcılığı stratejiyle," },
+};
+const globalForHeal = globalThis as unknown as {
+  nofAccentHealed: boolean | undefined;
+  nofAccentHealFails: number | undefined;
+};
+
+async function healStaleAccents(
+  rows: Array<{ id: string; sectionKey: string; bodyJson: unknown }>,
+  apply: (key: string, accent: string) => void,
+): Promise<void> {
+  if (globalForHeal.nofAccentHealed || (globalForHeal.nofAccentHealFails ?? 0) >= 3) return;
+  try {
+    const db = await getDb();
+    for (const r of rows) {
+      const rule = STALE_ACCENTS[r.sectionKey];
+      if (!rule) continue;
+      const body = (r.bodyJson ?? {}) as Record<string, unknown>;
+      const cur = typeof body.accent === "string" ? body.accent.trim() : "";
+      if (!rule.re.test(cur)) continue;
+      await db
+        .update(pageSections)
+        .set({ bodyJson: { ...body, accent: rule.want } })
+        .where(eq(pageSections.id, r.id));
+      apply(r.sectionKey, rule.want);
+      console.log(`[self-heal] accent ${r.sectionKey}: "${cur}" → "${rule.want}"`);
+    }
+    globalForHeal.nofAccentHealed = true;
+  } catch (e) {
+    globalForHeal.nofAccentHealFails = (globalForHeal.nofAccentHealFails ?? 0) + 1;
+    console.warn("[self-heal] accent düzeltmesi atlandı:", e instanceof Error ? e.message : e);
+  }
+}
+
 export async function getHomeSections(): Promise<Record<string, SectionView>> {
   return safe(async () => {
     const db = await getDb();
@@ -274,10 +318,21 @@ export async function getHomeSections(): Promise<Record<string, SectionView>> {
       .where(and(eq(pageSections.pageId, page.id), eq(pageSections.isVisible, true)))
       .orderBy(pageSections.position);
     const out: Record<string, SectionView> = {};
+    const bodies = new Map<string, Record<string, unknown>>();
     for (const r of rows) {
-      out[r.sectionKey] = { key: r.sectionKey, type: r.sectionType, eyebrow: r.eyebrow, title: r.title, body: (r.bodyJson ?? {}) as Record<string, unknown> };
+      const body = (r.bodyJson ?? {}) as Record<string, unknown>;
+      bodies.set(r.sectionKey, body);
+      out[r.sectionKey] = { key: r.sectionKey, type: r.sectionType, eyebrow: r.eyebrow, title: r.title, body };
     }
     if (!out.hero) throw new Error("no hero");
+    // Eski vurgu değerlerini düzelt ve BAKİYE yansıt (ilk render'da bile doğru).
+    await healStaleAccents(
+      rows.map((r) => ({ id: r.id, sectionKey: r.sectionKey, bodyJson: r.bodyJson })),
+      (key, accent) => {
+        const body = bodies.get(key);
+        if (body) body.accent = accent;
+      },
+    );
     return out;
   }, {});
 }
