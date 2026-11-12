@@ -380,6 +380,7 @@ const accDump = await page.evaluate(() => {
 const accText = await page.evaluate(() => ({
   hero3: document.querySelector("#top h1 .ln:nth-child(3) em")?.textContent ?? "",
   about: document.querySelector("#hakkimizda h2 em")?.textContent ?? "",
+  surec: document.querySelector("#surec h2 span.acc-pl")?.textContent ?? "",
 }));
 // TEK TON (kullanıcı talebi 13.11.2026): tüm vurgular aynı mor — koyu temada --pl,
 // beyaz kart dahil açık zeminlerde --p. #9335ff / #58349d artık hiçbir yerde yok.
@@ -395,6 +396,7 @@ check("vurgu: Referanslar açık mor", accDump.referanslar === MOR_ACIK, accDump
 check("vurgu: Hakkımızda açık mor", accDump.hakkimizda === MOR_ACIK, accDump.hakkimizda);
 check("vurgu: Hakkımızda vurgu metni 'Yaratıcılığı stratejiyle,'", accText.about === "Yaratıcılığı stratejiyle,", accText.about);
 check("vurgu: Süreç açık mor (tema duyarlı)", accDump.surec === MOR_ACIK, accDump.surec);
+check("vurgu: Süreç vurgu metni 'net bir yol.'", accText.surec === "net bir yol.", accText.surec);
 check("vurgu: Blog açık mor", accDump.blog === MOR_ACIK, accDump.blog);
 check("vurgu: İletişim açık mor (tek ton)", accDump.iletisim === MOR_ACIK, accDump.iletisim);
 check("vurgu: Partner kartı ana mor (beyaz zemin, tek ton)", accDump.partner === MOR_ANA, accDump.partner);
