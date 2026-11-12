@@ -76,3 +76,4 @@ scripts/verify-fixes.mjs
 scripts/verify-integration.mjs
 scripts/local-admin-seed.ts
 scripts/debug-*.mjs
+download/
