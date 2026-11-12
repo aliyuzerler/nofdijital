@@ -36,7 +36,7 @@ export function ReferencesSection() {
           Referanslarımız
         </span>
         <h2 className="h2" data-r>
-          Birlikte <em>çalıştığımız</em> markalar
+          Birlikte <em className="acc-pl">çalıştığımız</em> markalar
         </h2>
       </div>
       <div className="rfg">

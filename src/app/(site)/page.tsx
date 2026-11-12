@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { PostCard, ServiceCards } from "@/components/site/cards";
 import { WorkGallery } from "@/components/site/work-gallery";
 import { ReferencesSection } from "@/components/site/references-section";
 import { StatsBand } from "@/components/site/stats-band";
+import { accentSegments, sectionAccent } from "@/lib/accent";
 import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, getStatsSection, toPostItems } from "@/server/services/repositories";
 import { getPublicSettings } from "@/server/services/settings";
 import { GALLERY, SITE } from "@/content/reference-data";
@@ -10,32 +12,81 @@ import { GALLERY, SITE } from "@/content/reference-data";
 const CLS = ["s7", "s5", "s5", "s7"];
 
 /**
- * Başlığı DB'den basar; admin > Ana Sayfa > Bölüm kartındaki "Başlık" alanını
- * sitede yayınlar. "Vurgulu kelime" (accent) başlık içinde geçiyorsa site
- * diline uygun etiketle (process: renkli span, about: em) vurgulanır;
- * geçmiyorsa başlık düz metin olarak basılır (görsel bozulmaz).
+ * Başlığı DB'den basar; accent parçalara bölüp vurgulu bölümü etiketleyerek
+ * yayınlar (src/lib/accent.ts — kullanıcı onayı 12.11.2026):
+ *  - "Vurgulu kelime" başlıkta geçiyorsa o bölüm vurgulanır (Türkçe harf
+ *    duyarsız eşleşme: Büyük/küçük, İ/ı fark etmez).
+ *  - Geçmiyorsa SON kelime otomatik vurgulanır; başlık asla düz beyaz kalmaz.
+ * Renk: tone="pl" → açık mor (koyu tema) / ana mor (açık tema), tone="vivid"
+ * → canlı mor (iletişim CTA). Tanımsızsa nof.css'in kendi em kuralları
+ * (ör. .ab h2 em) devreye girer — inline stil YOK, tema duyarlılığı korunur.
  */
 function AccentedTitle({
   text,
   accent,
   tag = "span",
-  style,
+  tone,
 }: {
   text: string;
-  accent?: string;
+  accent?: string | null;
   tag?: "span" | "em";
-  style?: React.CSSProperties;
+  tone?: "pl" | "vivid";
 }) {
-  if (!accent || !text.includes(accent)) return <>{text}</>;
-  const i = text.indexOf(accent);
   const Tag = tag;
-  return (
-    <>
-      {text.slice(0, i)}
-      <Tag style={style}>{accent}</Tag>
-      {text.slice(i + accent.length)}
-    </>
+  return accentSegments(text, accent).map((s, i) =>
+    s.a ? (
+      <Tag key={i} className={tone ? `acc-${tone}` : undefined}>
+        {s.t}
+      </Tag>
+    ) : (
+      <Fragment key={i}>{s.t}</Fragment>
+    ),
   );
+}
+
+/**
+ * Hizmetler başlığı: DB'den gelir, görünür satırlara virgülden bölünür
+ * (.ln reveal animasyonu korunur) ve accent parçaları satırlara taşınır.
+ * Varsayılan: "Fikirden ölçüme, / tek çatı altında." — ikinci satır vurgulu.
+ */
+function AccentedLines({
+  text,
+  accent,
+}: {
+  text: string;
+  accent?: string | null;
+}) {
+  const lines: React.ReactNode[][] = [];
+  let current: React.ReactNode[] = [];
+  let key = 0;
+  for (const s of accentSegments(text, accent)) {
+    const parts = s.t.split(/(?<=,)\s+/);
+    parts.forEach((p, pi) => {
+      if (pi > 0) {
+        lines.push(current);
+        current = [];
+      }
+      if (p) {
+        current.push(
+          s.a ? (
+            <span className="acc-pl" key={key++}>
+              {p}
+            </span>
+          ) : (
+            <Fragment key={key++}>{p}</Fragment>
+          ),
+        );
+      }
+    });
+  }
+  lines.push(current);
+  return lines
+    .filter((l) => l.length > 0)
+    .map((line, li) => (
+      <span className="ln" key={li}>
+        <span>{line}</span>
+      </span>
+    ));
 }
 
 /**
@@ -59,8 +110,11 @@ export default async function HomePage() {
   const hero = sections.hero?.body ?? {};
   const about = sections.about?.body ?? {};
   const process = sections.process?.body ?? {};
+  const servicesBody = sections.services?.body ?? {};
+  const galleryBody = sections.gallery?.body ?? {};
+  const blogBody = sections["blog-preview"]?.body ?? {};
   const contact = sections.contact?.body ?? {};
-  const blogCta = (sections["blog-preview"]?.body as { cta?: { label?: string; href?: string } } | undefined)?.cta;
+  const blogCta = (blogBody as { cta?: { label?: string; href?: string } }).cta;
 
   const heroLead = (hero.lead as string) ?? SITE.heroLead;
   const heroImages = (hero.images as Array<{ mediaKey: string; alt: string; cls: string }> | undefined) ?? [
@@ -170,12 +224,10 @@ export default async function HomePage() {
             {sections.services?.eyebrow ?? "Hizmetlerimiz"}
           </span>
           <h2 className="h2" data-r>
-            <span className="ln">
-              <span>Fikirden ölçüme,</span>
-            </span>
-            <span className="ln">
-              <span>tek çatı altında.</span>
-            </span>
+            <AccentedLines
+              text={sections.services?.title ?? "Fikirden ölçüme, tek çatı altında."}
+              accent={sectionAccent(servicesBody, "services")}
+            />
           </h2>
           <ServiceCards services={services} />
         </div>
@@ -186,6 +238,7 @@ export default async function HomePage() {
         items={galleryItems}
         eyebrow={sections.gallery?.eyebrow ?? undefined}
         title={sections.gallery?.title ?? undefined}
+        accent={sectionAccent(galleryBody, "gallery")}
       />
 
       {/* İSTATİSTİK BANDI — sayaçlı (Referansların üstü, admin'den yönetilir) */}
@@ -212,7 +265,7 @@ export default async function HomePage() {
             <h2 data-r>
               <AccentedTitle
                 text={sections.about?.title ?? "Yaratıcılığı stratejiyle, stratejiyi ölçülebilir sonuçlarla birleştiriyoruz."}
-                accent={(about.accent as string) ?? "stratejiyle"}
+                accent={sectionAccent(about, "about")}
                 tag="em"
               />
             </h2>
@@ -250,9 +303,9 @@ export default async function HomePage() {
           <h2 className="h2" data-r>
             <AccentedTitle
               text={sections.process?.title ?? "Beş adımda, net bir yol."}
-              accent={(process.accent as string) ?? "net bir yol."}
+              accent={sectionAccent(process, "process")}
               tag="span"
-              style={{ color: "var(--pl)" }}
+              tone="pl"
             />
           </h2>
           <div className="pr" id="prc">
@@ -278,7 +331,12 @@ export default async function HomePage() {
                 {sections["blog-preview"]?.eyebrow ?? "Blog"}
               </span>
               <h2 className="h2" data-r>
-                {sections["blog-preview"]?.title ?? "Son yazılar"}
+                <AccentedTitle
+                  text={sections["blog-preview"]?.title ?? "Son yazılar"}
+                  accent={sectionAccent(blogBody, "blog-preview")}
+                  tag="span"
+                  tone="pl"
+                />
               </h2>
             </div>
             <Link className="btn" href={blogCta?.href ?? "/blog"} data-r>
@@ -312,7 +370,14 @@ export default async function HomePage() {
             <span className="eyb" data-r>
               {sections.contact?.eyebrow ?? "İletişim"}
             </span>
-            <h2 data-r>{sections.contact?.title ?? "Markanız için yeni bir başlangıca hazır mısınız?"}</h2>
+            <h2 data-r>
+              <AccentedTitle
+                text={sections.contact?.title ?? "Markanız için yeni bir başlangıca hazır mısınız?"}
+                accent={sectionAccent(contact, "contact")}
+                tag="span"
+                tone="vivid"
+              />
+            </h2>
             <p className="lead" data-r>
               {(contact.lead as string) ?? "Hedeflerinizi anlatın; size uygun içerik, prodüksiyon ve reklam planını birlikte şekillendirelim."}
             </p>

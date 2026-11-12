@@ -217,6 +217,9 @@ function SectionForm({ section }: { section: HomeSectionRow }) {
           <div className="space-y-2">
             <Label htmlFor={`accent-${section.id}`}>Vurgulu kelime</Label>
             <Input id={`accent-${section.id}`} value={accent} onChange={(e) => setAccent(e.target.value)} />
+            <p className="text-xs text-neutral-400">
+              Başlıkta geçmezse son kelime, boş bırakılırsa bölümün varsayılan kelimesi otomatik vurgulanır (mor). Eşleşmede büyük/küçük harf ve İ/ı fark etmez.
+            </p>
           </div>
         ) : null}
 

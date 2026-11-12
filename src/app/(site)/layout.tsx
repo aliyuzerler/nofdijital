@@ -66,6 +66,20 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             "#hd .logo img{height:44px;border-radius:10px}#hd.sc .logo img{height:36px;border-radius:9px}footer .lg img{height:52px;border-radius:12px}",
         }}
       />
+      {/* Bölüm başlığı vurgu tonlaması (12.11.2026 kullanıcı onayı): nof.css'e
+          dokunmadan eklenen tema duyarlı kurallar. .acc-pl → açık mor (#b9a0ef,
+          açık temada ana mor #8254d8), .acc-vivid → canlı mor (#9335ff, her iki
+          temada okunur), .ptn h3 em → beyaz kart üstünde koyu mor (#58349d).
+          Vurgulu em'lerde italik kapatılır — hero/.ab/.stb vurgularıyla aynı dil. */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html:
+            "#v-home .acc-pl{color:#b9a0ef;font-style:normal}" +
+            'html[data-theme="light"] #v-home .acc-pl{color:#8254d8}' +
+            "#v-home .acc-vivid{color:#9335ff;font-style:normal}" +
+            "#v-home .ptn h3 em{color:#58349d}",
+        }}
+      />
       <IconSprite />
       <CanvasBackground />
       <SiteHeader logoUrl={settings.logoUrl} />

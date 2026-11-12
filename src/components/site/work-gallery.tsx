@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { Fragment, useCallback, useEffect, useRef } from "react";
 import { GALLERY } from "@/content/reference-data";
+import { accentSegments } from "@/lib/accent";
 import { placeScene } from "./gallery-engine";
 import type { GalleryItemView } from "@/server/services/repositories";
 
@@ -9,16 +10,21 @@ import type { GalleryItemView } from "@/server/services/repositories";
  * Referans sticky yatay galeri: 3 sahne × 7 benzersiz fotoğraf,
  * scroll ile senkron yatay kaydırma, ilerleme göstergesi, lightbox tetiği.
  * Görseller DB'den (portfolio_images) gelir; fallback GALLERY sabiti.
+ * Başlık DB'den gelir; son kelime .acc-pl (açık mor) ile vurgulanır —
+ * admin'de başlık ne yazılırsa yazsın başlık düz beyaz kalmaz.
  */
 export function WorkGallery({
   items,
   eyebrow,
   title,
+  accent,
 }: {
   items?: GalleryItemView[];
   /** Ana sayfa bölüm başlığı — admin > Ana Sayfa > Galeri kartından gelir. */
   eyebrow?: string;
   title?: string;
+  /** Vurgulu kelime — admin > Ana Sayfa > Galeri kartının "Vurgulu kelime" alanı. */
+  accent?: string | null;
 }) {
   const secRef = useRef<HTMLElement>(null);
   const stkRef = useRef<HTMLDivElement>(null);
@@ -129,7 +135,17 @@ export function WorkGallery({
       <div className="stk" id="stk" ref={stkRef}>
         <div className="wh1">
           <span className="eyb">{eyebrow ?? "Çalışmalarımız"}</span>
-          <h2>{title ?? "Stüdyo duvarı"}</h2>
+          <h2>
+            {accentSegments(title ?? "Stüdyo duvarı", accent).map((s, i) =>
+              s.a ? (
+                <em className="acc-pl" key={i}>
+                  {s.t}
+                </em>
+              ) : (
+                <Fragment key={i}>{s.t}</Fragment>
+              ),
+            )}
+          </h2>
         </div>
         <div className="wpg">
           <span id="wn" ref={wnRef}>

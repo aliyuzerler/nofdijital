@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
+import { accentSegments } from "@/lib/accent";
 
 /**
  * İstatistik bandı — Referansların üstünde (Referans tasarımından site diline uyarlama).
@@ -51,21 +52,16 @@ function sanitize(items: StatItem[] | null | undefined): StatItem[] | null {
   return out.length ? out : null;
 }
 
-/** Başlığı basar; accent kelimesi geçiyorsa <em> ile vurgular. */
+/**
+ * Başlığı basar; accent kelimesi (Türkçe harf duyarsız eşleşme) geçiyorsa
+ * <em> ile vurgular, geçmezse SON kelimeyi vurgular (kullanıcı onayı
+ * 12.11.2026) — başlık asla düz beyaz kalmaz. Renk nof.css .stb-title em.
+ */
 function TitleWithAccent({ title, accent }: { title: string; accent?: string | null }) {
   const t = title ?? DEFAULTS.title;
-  const a = accent && accent.length > 0 && t.includes(accent) ? accent : null;
-  if (a) {
-    const i = t.indexOf(a);
-    return (
-      <>
-        {t.slice(0, i)}
-        <em>{a}</em>
-        {t.slice(i + a.length)}
-      </>
-    );
-  }
-  return <>{t}</>;
+  return accentSegments(t, accent ?? DEFAULTS.accent).map((s, i) =>
+    s.a ? <em key={i}>{s.t}</em> : <Fragment key={i}>{s.t}</Fragment>,
+  );
 }
 
 export function StatsBand({

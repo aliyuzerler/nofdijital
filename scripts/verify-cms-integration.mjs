@@ -8,6 +8,9 @@
  *  5) Site paritesi: hizmetler/duvar/sayaç admin'den besleniyor
  *  6) Menü: STATİK (header+footer Referanslarımız; admin Menü paneli kaldırıldı → 404)
  *  6b) Bölüm başlıkları: Süreç + Hakkımızda başlığı admin'den sitede yayınlanır
+ *  6c) Vurgu tonlaması: 9 bölüm vurgusu renk doğru (koyu+açık tema), accent
+ *      başlıkta yoksa son kelime otomatik vurgulanır (fallback), admin'de
+ *      "Vurgulu kelime" alanı 7 başlıklı bölümde görünür
  *  7) Logo: Genel Ayarlar'dan logo yükle → Kaydet → sitede aktif; varsayılana dön
  *  8) Süreç: popup düzenleme round-trip
  * Çalıştırma: sunucu ayaktayken `bun scripts/verify-cms-integration.mjs`
@@ -285,6 +288,27 @@ await page.waitForTimeout(2500);
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 const surecH2 = await page.textContent("#surec h2");
 check("site: Süreç başlığı admin'den yayınlanıyor", (surecH2 ?? "").includes("kesin sonuç E2E."), (surecH2 ?? "yok").trim());
+
+// Vurgu fallback (kullanıcı onayı 12.11.2026): accent kelimesi başlıkta YOKSA
+// son kelime otomatik vurgulanmalı — düz beyaz başlık imkânsız.
+await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
+await page.waitForTimeout(1200);
+const procCardFb = page.locator('[data-slot="card"]', { hasText: "Süreç" }).first();
+await procCardFb.getByLabel("Vurgulu kelime").fill("başlıkta hiç geçmeyen kelime");
+await procCardFb.getByRole("button", { name: "Kaydet" }).click();
+await page.waitForTimeout(2500);
+await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.waitForTimeout(600);
+const surecFb = await page.evaluate(() => {
+  const el = document.querySelector("#surec h2 span.acc-pl");
+  return el ? { text: el.textContent, color: getComputedStyle(el).color } : null;
+});
+check(
+  "site: Süreç vurgu fallback (accent yoksa son kelime mor)",
+  Boolean(surecFb) && (surecFb?.text ?? "").trim() === "E2E" && surecFb?.color === "rgb(185, 160, 239)",
+  JSON.stringify(surecFb),
+);
+
 await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);
 const procCard2 = page.locator('[data-slot="card"]', { hasText: "Süreç" }).first();
@@ -301,6 +325,15 @@ await page.waitForTimeout(2500);
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 const abH2 = await page.textContent("#hakkimizda h2");
 check("site: Hakkımızda başlığı admin'den yayınlanıyor", (abH2 ?? "").includes("ölçülebilir sonuç E2E."), (abH2 ?? "yok").trim());
+const abEm = await page.evaluate(() => {
+  const el = document.querySelector("#hakkimizda h2 em");
+  return el ? { text: el.textContent, color: getComputedStyle(el).color } : null;
+});
+check(
+  "site: Hakkımızda vurgusu em mor (fallback son kelime)",
+  Boolean(abEm) && (abEm?.text ?? "").includes("E2E") && abEm?.color === "rgb(185, 160, 239)",
+  JSON.stringify(abEm),
+);
 await page.goto(BASE + "/admin/pages/home", { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);
 const abCard2 = page.locator('[data-slot="card"]', { hasText: "Hakkımızda" }).first();
@@ -308,9 +341,71 @@ await abCard2.getByLabel("Başlık").fill("Yaratıcılığı stratejiyle, strate
 await abCard2.getByRole("button", { name: "Kaydet" }).click();
 await page.waitForTimeout(2500);
 
+// Admin: "Vurgulu kelime" alanı artık tüm başlıklı bölümlerde görünüyor (hero hariç 7 kart)
+const accentLabels = await page.locator('label:has-text("Vurgulu kelime")').count();
+check("admin: Vurgulu kelime alanı 7 başlıklı bölümde", accentLabels === 7, `labels=${accentLabels}`);
+const abAccentVal = await page
+  .locator('[data-slot="card"]', { hasText: "Hakkımızda" })
+  .first()
+  .getByLabel("Vurgulu kelime")
+  .inputValue();
+check("admin: Hakkımızda vurgu alanı varsayılanla dolu", abAccentVal === "stratejiyle", abAccentVal);
+
 // Statik menü: header VE footer'da Referanslarımız; kaydırma davranışı korunuyor
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
 await page.waitForTimeout(800);
+
+/* ---- 4c-2) VURGU TONLAMASI — koyu tema (9 bölüm) ---- */
+const accDump = await page.evaluate(() => {
+  const pick = (sel) => {
+    const el = document.querySelector(sel);
+    return el ? getComputedStyle(el).color : "yok";
+  };
+  return {
+    hizmetler: pick("#hizmetler h2 span.acc-pl"),
+    galeri: pick("#calismalar .wh1 h2 em.acc-pl"),
+    istatistik: pick(".stb-title em"),
+    referanslar: pick("#referanslar h2 em.acc-pl"),
+    hakkimizda: pick("#hakkimizda h2 em"),
+    surec: pick("#surec h2 span.acc-pl"),
+    blog: pick("#blog-ozet h2 span.acc-pl"),
+    iletisim: pick("#iletisim h2 span.acc-vivid"),
+    partner: pick("#iletisim .ptn h3 em"),
+  };
+});
+const MOR_ACIK = "rgb(185, 160, 239)";
+const MOR_CANLI = "rgb(147, 53, 255)";
+const MOR_KOYU = "rgb(88, 52, 157)";
+check("vurgu: Hizmetler 'tek çatı altında.' açık mor", accDump.hizmetler === MOR_ACIK, accDump.hizmetler);
+check("vurgu: Galeri son kelime açık mor", accDump.galeri === MOR_ACIK, accDump.galeri);
+check("vurgu: İstatistik canlı mor", accDump.istatistik === MOR_CANLI, accDump.istatistik);
+check("vurgu: Referanslar açık mor", accDump.referanslar === MOR_ACIK, accDump.referanslar);
+check("vurgu: Hakkımızda açık mor", accDump.hakkimizda === MOR_ACIK, accDump.hakkimizda);
+check("vurgu: Süreç açık mor (tema duyarlı)", accDump.surec === MOR_ACIK, accDump.surec);
+check("vurgu: Blog açık mor", accDump.blog === MOR_ACIK, accDump.blog);
+check("vurgu: İletişim canlı mor", accDump.iletisim === MOR_CANLI, accDump.iletisim);
+check("vurgu: Partner kartı koyu mor", accDump.partner === MOR_KOYU, accDump.partner);
+
+// Açık tema: .acc-pl ana mora döner (kontrast 4.6+), canlı mor korunur
+await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+await page.waitForTimeout(400);
+const accLight = await page.evaluate(() => {
+  const pick = (sel) => {
+    const el = document.querySelector(sel);
+    return el ? getComputedStyle(el).color : "yok";
+  };
+  return {
+    hizmetler: pick("#hizmetler h2 span.acc-pl"),
+    surec: pick("#surec h2 span.acc-pl"),
+    iletisim: pick("#iletisim h2 span.acc-vivid"),
+  };
+});
+const MOR_ANA = "rgb(130, 84, 216)";
+check("vurgu: açık temada Hizmetler ana mor", accLight.hizmetler === MOR_ANA, accLight.hizmetler);
+check("vurgu: açık temada Süreç ana mor (soluk değil)", accLight.surec === MOR_ANA, accLight.surec);
+check("vurgu: açık temada İletişim canlı mor", accLight.iletisim === MOR_CANLI, accLight.iletisim);
+await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+await page.waitForTimeout(200);
 const refLink = page.locator("header#hd nav.m a", { hasText: "Referanslarımız" });
 check("header: Referanslarımız linki var (statik menü)", (await refLink.count()) === 1, "");
 check("header: Referanslarımız href doğruden", (await refLink.getAttribute("href")) === "/#referanslar", "");

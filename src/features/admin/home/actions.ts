@@ -5,6 +5,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/server/db";
 import { pageSections, pages } from "@/server/db/schema";
+import { sectionAccent } from "@/lib/accent";
 import { logAudit, ok, fail, runAction } from "@/features/admin/shared";
 
 /**
@@ -95,7 +96,10 @@ export async function getHomeSectionsAdmin(): Promise<{ pageId: string; pageSeo:
         position: r.position,
         lead: typeof body.lead === "string" ? body.lead : null,
         chip: typeof body.chip === "string" ? body.chip : null,
-        accent: typeof body.accent === "string" ? body.accent : null,
+        // Vurgu: bodyJson'da kayıtlı değer yoksa bölümün varsayılanı gösterilir
+        // (src/lib/accent.ts) — böylece "Vurgulu kelime" alanı her başlıklı
+        // bölümde görünür ve kaydedildiğinde kalıcılaşır.
+        accent: sectionAccent(body, r.sectionKey),
         ctaPrimary: readCta(body.ctaPrimary),
         ctaSecondary: readCta(body.ctaSecondary),
         cta: readCta(body.cta),
