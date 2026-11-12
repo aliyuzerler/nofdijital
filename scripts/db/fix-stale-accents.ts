@@ -1,7 +1,10 @@
-import "dotenv/config";
-
 /**
  * Prod vurgu mutabakatı (deploy sırasında bir kez etkili, idempotent, güvenli).
+ *
+ * Ortam değişkenleri: Vercel/Neon gerçek env değişkenleriyle çalışır — bu script
+ * BİLİNÇLİ olarak dotenv yüklemez (dotenv package.json'da tanımlı değil; Vercel
+ * build'inde "Cannot find module 'dotenv/config'" ile build düşer). Yerel
+ * koşumlar env'yi açıkça geçirir (bkz. scripts/verify-accent-migration.mjs).
  *
  * Bağlam (kullanıcı talebi 13.11.2026): canlı DB'de Süreç kartının accent değeri
  * eski "yol" olarak kayıtlı — bu yüzden site "net bir yol." yerine yalnız "yol"
@@ -15,9 +18,14 @@ import "dotenv/config";
  *                                                      → "Yaratıcılığı stratejiyle,"
  *
  * GÜVENLİK: script HİÇBİR KOŞULDA build'i düşürmez — her hatada uyarı verip
- * exit 0 ile çıkar. Yerel/pglite'ta varsayılan olarak sessizce atlar (yerel DB
- * zaten güncel; zorlamak için ACCENT_FIX_FORCE=1 — yalnız test amaçlı).
+ * exit 0 ile çıkar (modül bulunamazsa bile build adımı "|| echo" ile telafi
+ * eder). Yerel/pglite'ta varsayılan olarak sessizce atlar (yerel DB zaten
+ * güncel; zorlamak için ACCENT_FIX_FORCE=1 — yalnız test amaçlı).
  */
+
+// Dosyayı TS modülü yapar (dotenv kaldırılınca statik import kalmadı;
+// top-level await modül gerektirir).
+export {};
 
 const ACCENT_ABOUT = "Yaratıcılığı stratejiyle,";
 const ACCENT_PROCESS = "net bir yol.";
