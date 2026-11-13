@@ -15,34 +15,41 @@ import { pages } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 
 /** Ana sayfa SEO alanları (pages tablosu, slug=home) → tüm (site) rotalarına akar.
- *  Tarayıcı sekme ikonu (favicon) admin'de yüklenen logodan beslenir. */
+ *  Tarayıcı sekme ikonu (favicon) HER ZAMAN mor zeminli marka logosudur (14.11.2026
+ *  kullanıcı talebi): admin'den yüklenen şeffaf logo sekmede görünmediği için
+ *  favicon /assets/logo.png'e sabitlendi — admin logosu yalnızca header/footer'da.
+ *  Sekme başlığı "NOF DİGİTAL" ile başlar: DB'deki eski "NOF DİJİTAL" öneki
+ *  görüntülenirken düzeltilir + getHomeSections içindeki self-heal ile kalıcıdır. */
+const FAVICON = {
+  icon: [{ url: "/assets/logo.png", type: "image/png" }],
+  apple: [{ url: "/assets/logo.png" }],
+};
+/** DB seoTitle'ındaki eski "NOF DİJİTAL" öneki → "NOF DİGİTAL" (marka logosundaki yazımla aynı). */
+const normTitle = (t: string) => t.replace(/^NOF\s*D[İI]J[İI]TAL/i, "NOF DİGİTAL");
+
 export async function generateMetadata(): Promise<Metadata> {
   const FALLBACK: Metadata = {
-    title: "NOF DİJİTAL — Yaratıcı Prodüksiyon & Performans Pazarlama",
+    title: "NOF DİGİTAL — Yaratıcı Prodüksiyon & Performans Pazarlama",
     description: "Sosyal medya yönetimi, Google & Meta Ads, fotoğraf, video ve prodüksiyon hizmetleri.",
-    icons: { icon: [{ url: "/assets/logo.png", type: "image/png" }], apple: [{ url: "/assets/logo.png" }] },
+    icons: FAVICON,
   };
   try {
-    const [settings, row] = await Promise.all([
-      getPublicSettings(),
-      (async () => {
-        const db = await getDb();
-        return (
-          await db
-            .select({ seoTitle: pages.seoTitle, seoDescription: pages.seoDescription, canonicalUrl: pages.canonicalUrl })
-            .from(pages)
-            .where(eq(pages.slug, "home"))
-            .limit(1)
-        )[0];
-      })(),
-    ]);
-    const logo = settings.logoUrl || "/assets/logo.png";
+    const row = await (async () => {
+      const db = await getDb();
+      return (
+        await db
+          .select({ seoTitle: pages.seoTitle, seoDescription: pages.seoDescription, canonicalUrl: pages.canonicalUrl })
+          .from(pages)
+          .where(eq(pages.slug, "home"))
+          .limit(1)
+      )[0];
+    })();
     if (!row) return FALLBACK;
     return {
-      title: row.seoTitle ?? FALLBACK.title,
+      title: row.seoTitle ? normTitle(row.seoTitle) : FALLBACK.title,
       description: row.seoDescription ?? FALLBACK.description,
       alternates: row.canonicalUrl ? { canonical: row.canonicalUrl } : undefined,
-      icons: { icon: [{ url: logo, type: "image/png" }], apple: [{ url: logo }] },
+      icons: FAVICON,
     };
   } catch {
     return FALLBACK;
@@ -58,12 +65,16 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   ]);
   return (
     <>
-      {/* Marka logosu: nof.css'e dokunmadan kullanıcı talebiyle büyütme + oval köşeler
-          (koyu/açık tema ve kaydırma durumu dahil). Header 34→44, kaydırınca 36, footer 40→52. */}
+      {/* Marka logosu: nof.css'e dokunmadan kullanıcı talebiyle büyütme (14.11.2026:
+          "logo küçük görünüyor") + oval köşeler. Header 44→60, kaydırınca 36→44,
+          footer 52→68; mobilde taşmayı önlemek için yükseklik+genişlik sınırı. */}
       <style
         dangerouslySetInnerHTML={{
           __html:
-            "#hd .logo img{height:44px;border-radius:10px}#hd.sc .logo img{height:36px;border-radius:9px}footer .lg img{height:52px;border-radius:12px}",
+            "#hd .logo img{height:60px;border-radius:10px;max-width:260px;object-fit:contain}" +
+            "#hd.sc .logo img{height:44px;border-radius:9px}" +
+            "footer .lg img{height:68px;border-radius:12px}" +
+            "@media(max-width:700px){#hd .logo img{height:48px;max-width:200px}#hd.sc .logo img{height:40px}}",
         }}
       />
       {/* Bölüm başlığı vurgu tonlaması (13.11.2026 güncelleme — kullanıcı talebi:

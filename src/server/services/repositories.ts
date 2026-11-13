@@ -307,6 +307,38 @@ async function healStaleAccents(
   }
 }
 
+/**
+ * SELF-HEAL (14.11.2026): ana sayfa seoTitle'ındaki eski "NOF DİJİTAL" öneki,
+ * marka yazımıyla ("NOF DİGİTAL" — logodaki yazım) kalıcı olarak hizalanır.
+ * Yalnızca bilinen önekle başlayan değerler değiştirilir; admin'in sonradan
+ * girdiği özel başlık ASLA ezilmez. Görüntüleme tarafı layout.tsx normTitle
+ * ile zaten garanti altında; bu düzeltme admin panelinin de tutarlı olması için.
+ */
+const STALE_SEO_TITLE = /^NOF\s*D[İI]J[İI]TAL/i;
+const globalForSeoHeal = globalThis as unknown as {
+  nofSeoTitleHealed: boolean | undefined;
+  nofSeoTitleFails: number | undefined;
+};
+
+async function healStaleSeoTitle(page: { id: string; seoTitle: string | null }): Promise<void> {
+  if (globalForSeoHeal.nofSeoTitleHealed || (globalForSeoHeal.nofSeoTitleFails ?? 0) >= 3) return;
+  const cur = (page.seoTitle ?? "").trim();
+  try {
+    if (!STALE_SEO_TITLE.test(cur)) {
+      globalForSeoHeal.nofSeoTitleHealed = true;
+      return;
+    }
+    const db = await getDb();
+    const want = cur.replace(STALE_SEO_TITLE, "NOF DİGİTAL");
+    await db.update(pages).set({ seoTitle: want }).where(eq(pages.id, page.id));
+    globalForSeoHeal.nofSeoTitleHealed = true;
+    console.log(`[self-heal] seoTitle: "${cur}" → "${want}"`);
+  } catch (e) {
+    globalForSeoHeal.nofSeoTitleFails = (globalForSeoHeal.nofSeoTitleFails ?? 0) + 1;
+    console.warn("[self-heal] seoTitle düzeltmesi atlandı:", e instanceof Error ? e.message : e);
+  }
+}
+
 export async function getHomeSections(): Promise<Record<string, SectionView>> {
   return safe(async () => {
     const db = await getDb();
@@ -333,6 +365,8 @@ export async function getHomeSections(): Promise<Record<string, SectionView>> {
         if (body) body.accent = accent;
       },
     );
+    // Eski "NOF DİJİTAL" seo başlığını marka yazımıyla ("NOF DİGİTAL") kalıcı hizala.
+    await healStaleSeoTitle(page);
     return out;
   }, {});
 }

@@ -418,9 +418,11 @@ export default async function HomePage() {
               Güvenilir platformların <em>resmî iş ortağıyız</em>
             </h3>
             <div className="ptn-grid">
-              {/* Mor zeminli marka logosu: karo zeminini şeffaflaştır, logonun arkasına fon eklenmez. */}
+              {/* Mor zeminli marka logosu (14.11.2026 kullanıcı talebi): partner
+                  kartındaki logo HER ZAMAN mor zeminli /assets/logo.png — admin'den
+                  yüklenen şeffaf logo beyaz kartta kayboluyordu. */}
               <div className="ptn-tile me" style={{ background: "transparent" }}>
-                <img src={settings.logoUrl || "/assets/logo.png"} alt="NOF Dijital" />
+                <img src="/assets/logo.png" alt="NOF Digital" />
               </div>
               <div className="ptn-tile">
                 <img src="/assets/partners/meta.svg" alt="Meta Business" />

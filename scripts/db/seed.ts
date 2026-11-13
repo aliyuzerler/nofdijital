@@ -271,7 +271,7 @@ async function main() {
           slug: "home",
           title: "Ana Sayfa",
           status: "published",
-          seoTitle: "NOF DİJİTAL — Yaratıcı Prodüksiyon & Performans Pazarlama",
+          seoTitle: "NOF DİGİTAL — Yaratıcı Prodüksiyon & Performans Pazarlama",
           seoDescription: "Sosyal medya yönetimi, Google & Meta Ads, fotoğraf, video ve prodüksiyon hizmetleri.",
           publishedAt: new Date(),
         })
