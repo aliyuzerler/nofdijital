@@ -141,10 +141,10 @@ export default async function HomePage() {
     settingsInfo.length > 0
       ? settingsInfo
       : ((contact.info as Array<{ icon: string; text: string }> | undefined) ?? SITE.contactInfo);
+  // Sosyal butonlar: LinkedIn + YouTube yönlendirmeleri kaldırıldı (14.11.2026
+  // kullanıcı talebi) — yalnızca Instagram butonu gösterilir.
   const socialLinks = [
     { icon: "ig", label: "Instagram", href: settings.social.instagram || "/#iletisim" },
-    { icon: "in", label: "LinkedIn", href: settings.social.linkedin || "/#iletisim" },
-    { icon: "yt", label: "YouTube", href: settings.social.youtube || "/#iletisim" },
   ];
   const postItems = toPostItems(posts);
 
@@ -420,8 +420,10 @@ export default async function HomePage() {
             <div className="ptn-grid">
               {/* Mor zeminli marka logosu (14.11.2026 kullanıcı talebi): partner
                   kartındaki logo HER ZAMAN mor zeminli /assets/logo.png — admin'den
-                  yüklenen şeffaf logo beyaz kartta kayboluyordu. */}
-              <div className="ptn-tile me" style={{ background: "transparent" }}>
+                  yüklenen şeffaf logo beyaz kartta kayboluyordu. İkinci talep:
+                  şeffaf zemin eziyor — diğer partner kartlarındaki gibi yuvarlak
+                  .ptn-tile zemini geri geldi; logo köşeleri nof.css'te oval. */}
+              <div className="ptn-tile me">
                 <img src="/assets/logo.png" alt="NOF Digital" />
               </div>
               <div className="ptn-tile">

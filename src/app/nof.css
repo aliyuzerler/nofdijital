@@ -1277,6 +1277,7 @@ textarea {
 }
 .ptn-tile.me img {
   height: 46px;
+  border-radius: 12px;
 }
 .ptn-note {
   margin-top: 18px;

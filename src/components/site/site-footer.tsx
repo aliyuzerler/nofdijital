@@ -39,10 +39,10 @@ export function SiteFooter({
   ].filter(Boolean);
   const contactItems = contactLines.length > 0 ? contactLines : [...SITE.footerContact];
 
+  // Sosyal butonlar: LinkedIn + YouTube yönlendirmeleri kaldırıldı (14.11.2026
+  // kullanıcı talebi) — yalnızca Instagram butonu gösterilir.
   const socials = [
     { icon: "ig", label: "Instagram", href: settings.social.instagram || "/#iletisim" },
-    { icon: "in", label: "LinkedIn", href: settings.social.linkedin || "/#iletisim" },
-    { icon: "yt", label: "YouTube", href: settings.social.youtube || "/#iletisim" },
   ];
 
   return (

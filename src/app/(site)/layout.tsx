@@ -66,15 +66,16 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   return (
     <>
       {/* Marka logosu: nof.css'e dokunmadan kullanıcı talebiyle büyütme (14.11.2026:
-          "logo küçük görünüyor") + oval köşeler. Header 44→60, kaydırınca 36→44,
-          footer 52→68; mobilde taşmayı önlemek için yükseklik+genişlik sınırı. */}
+          "logo küçük görünüyor" → 60px; ikinci talep "şeffaf zeminli logoları biraz
+          daha büyüt" → 74px) + oval köşeler. Header 60→74, kaydırınca 44→52,
+          footer 68→82; mobilde taşmayı önlemek için yükseklik+genişlik sınırı. */}
       <style
         dangerouslySetInnerHTML={{
           __html:
-            "#hd .logo img{height:60px;border-radius:10px;max-width:260px;object-fit:contain}" +
-            "#hd.sc .logo img{height:44px;border-radius:9px}" +
-            "footer .lg img{height:68px;border-radius:12px}" +
-            "@media(max-width:700px){#hd .logo img{height:48px;max-width:200px}#hd.sc .logo img{height:40px}}",
+            "#hd .logo img{height:74px;border-radius:10px;max-width:300px;object-fit:contain}" +
+            "#hd.sc .logo img{height:52px;border-radius:9px}" +
+            "footer .lg img{height:82px;border-radius:12px}" +
+            "@media(max-width:700px){#hd .logo img{height:56px;max-width:220px}#hd.sc .logo img{height:44px}}",
         }}
       />
       {/* Bölüm başlığı vurgu tonlaması (13.11.2026 güncelleme — kullanıcı talebi:
