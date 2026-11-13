@@ -1044,51 +1044,37 @@ html[data-theme="light"] .st .n {
   gap: 30px;
   flex-wrap: wrap;
 }
-.bgrid {
+/* ---- Basında Biz kartları (14.11.2026 — blog kartlarının yerini aldı) ----
+   Kart = orijinal haber kaynağına giden dış bağlantı (yeni sekme).
+   .pr-grid / .pr / .pr .im / .pr .tag / .pr p / .pr .rd / .pr-empty / .pr-hint */
+.pr-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 22px;
   margin-top: 50px;
 }
-.pc {
+.pr {
   display: block;
-  grid-column: span 4;
+  grid-column: span 3;
   position: relative;
+  text-decoration: none;
+  color: inherit;
 }
-.pc .im {
+.pr .im {
   overflow: hidden;
   border-radius: 14px;
-  aspect-ratio: 4/5;
-  background: #ddd;
+  aspect-ratio: 16/10;
+  background: var(--hd-chip);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
-.pc .im img {
+.pr .im img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: scale 0.9s var(--e);
 }
-.pc:hover .im img {
+.pr:hover .im img {
   scale: 1.07;
-}
-.pc.s7 {
-  grid-column: span 7;
-}
-.pc.s5 {
-  grid-column: span 5;
-}
-.pc.s7 .im {
-  aspect-ratio: 16/10;
-}
-.pc.s5 .im {
-  aspect-ratio: 4/4.6;
-}
-.mt {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  font-size: 0.78rem;
-  color: var(--text-2);
-  margin: 16px 0 8px;
 }
 .tag {
   background: var(--p);
@@ -1099,20 +1085,17 @@ html[data-theme="light"] .st .n {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
 }
-.pc h3 {
-  font-size: 1.5rem;
-  line-height: 1.12;
-  transition: color 0.3s;
+.pr .tag {
+  display: inline-block;
+  margin-top: 16px;
 }
-.pc:hover h3 {
-  color: var(--link);
-}
-.pc p {
+.pr p {
   color: var(--text-2);
-  font-size: 0.93rem;
-  margin-top: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-top: 10px;
 }
-.pc .rd {
+.pr .rd {
   display: inline-flex;
   gap: 6px;
   align-items: center;
@@ -1120,6 +1103,45 @@ html[data-theme="light"] .st .n {
   font-size: 0.85rem;
   margin-top: 12px;
   color: var(--link);
+  transition: gap 0.3s;
+}
+.pr:hover .rd {
+  gap: 10px;
+}
+/* Boş durum: henüz haber yok (Basında Biz sayfası) */
+.pr-empty {
+  margin-top: 44px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 28px;
+  border-radius: 18px;
+  border: 1px dashed var(--line);
+  background: var(--hd-chip);
+}
+.pr-empty .i {
+  color: var(--p);
+  font-size: 1.4rem;
+  margin-top: 2px;
+  flex: none;
+}
+.pr-empty h2 {
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+.pr-empty p {
+  color: var(--text-2);
+  font-size: 0.95rem;
+}
+.pr-empty a {
+  color: var(--link);
+  text-decoration: underline;
+}
+/* Ana sayfa önizleme boş notu */
+.pr-hint {
+  margin-top: 44px;
+  color: var(--text-2);
+  font-size: 0.95rem;
 }
 
 /* ---- İletişim ---- */
@@ -1608,6 +1630,10 @@ html[data-theme="dark"] .bt1 em {
   .ct {
     grid-template-columns: 1fr;
   }
+  /* Basında Biz: tablette 2 kart / satır */
+  .pr {
+    grid-column: span 6;
+  }
   .art {
     height: 560px;
     max-width: 560px;
@@ -1659,9 +1685,8 @@ html[data-theme="dark"] .bt1 em {
   .card {
     min-height: 240px;
   }
-  .pc,
-  .pc.s7,
-  .pc.s5 {
+  .pr,
+  .pr:where(.s7, .s5) {
     grid-column: span 12;
   }
   .r2 {

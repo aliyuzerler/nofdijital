@@ -10,17 +10,12 @@ import {
   pgEnum,
   index,
   uniqueIndex,
-  primaryKey,
 } from "drizzle-orm/pg-core";
 
-/* ---- Enums ---- */
+/* ---- Enums ----
+   content_status enum'u blog_posts ile birlikte düşürüldü (14.11.2026) —
+   basın haberleri için durum sütunu yok, yalnızca görünürlük anahtarı var. */
 export const userRoleEnum = pgEnum("user_role", ["owner", "editor"]);
-export const contentStatusEnum = pgEnum("content_status", [
-  "draft",
-  "scheduled",
-  "published",
-  "archived",
-]);
 export const contactStatusEnum = pgEnum("contact_status", ["new", "read", "archived"]);
 export const pageStatusEnum = pgEnum("page_status", ["draft", "published"]);
 
@@ -218,67 +213,29 @@ export const portfolioImages = pgTable(
   (t) => [index("portfolio_images_pos_idx").on(t.position)],
 );
 
-export const blogCategories = pgTable("blog_categories", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  description: text("description"),
-  position: integer("position").notNull().default(0),
-  ...ts,
-});
+/* Blog kaldırıldı (14.11.2026 kullanıcı talebi: "blog yazısı yazmayacağız") —
+   blog_categories / blog_tags / blog_post_tags / blog_posts tabloları migration
+   ile düşürüldü; yerine press_items (Basında Biz) geldi. */
 
-export const blogTags = pgTable("blog_tags", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  ...ts,
-});
-
-export const blogPostTags = pgTable(
-  "blog_post_tags",
-  {
-    postId: uuid("post_id")
-      .notNull()
-      .references(() => blogPosts.id, { onDelete: "cascade" }),
-    tagId: uuid("tag_id")
-      .notNull()
-      .references(() => blogTags.id, { onDelete: "cascade" }),
-  },
-  (t) => [primaryKey({ columns: [t.postId, t.tagId] })],
-);
-
-export const blogPosts = pgTable(
-  "blog_posts",
+/**
+ * Basında Biz (14.11.2026): NOF Digital hakkındaki basın haberleri. Her kayıt
+ * haber kaynağının URL'si + kart görseli + kısa açıklama + kaynak adından oluşur;
+ * görsele/karta tıklayan ziyaretçi orijinal haber sayfasına gider (yeni sekme).
+ * Sıralama: en yeni eklenen üstte (createdAt desc) — ek alan (sıra no/tarih)
+ * istenmediği için tek kontrol görünürlük anahtarıdır.
+ */
+export const pressItems = pgTable(
+  "press_items",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    slug: text("slug").notNull().unique(),
-    title: text("title").notNull(),
-    excerpt: text("excerpt").notNull(),
-    bodyJson: jsonb("body_json").notNull(),
-    bodyHtmlCache: text("body_html_cache"),
-    categoryId: uuid("category_id").references(() => blogCategories.id, { onDelete: "set null" }),
-    coverMediaId: uuid("cover_media_id").references(() => mediaAssets.id, { onDelete: "set null" }),
-    authorId: text("author_id").references(() => user.id, { onDelete: "set null" }),
-    status: contentStatusEnum("status").notNull().default("draft"),
-    publishedAt: timestamp("published_at", { withTimezone: true }),
-    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
-    readingMinutes: integer("reading_minutes").notNull().default(5),
-    seoTitle: text("seo_title"),
-    seoDescription: text("seo_description"),
-    canonicalUrl: text("canonical_url"),
-    ogImageId: uuid("og_image_id").references(() => mediaAssets.id, { onDelete: "set null" }),
-    robotsIndex: boolean("robots_index").notNull().default(true),
-    robotsFollow: boolean("robots_follow").notNull().default(true),
-    revisionNumber: integer("revision_number").notNull().default(1),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    url: text("url").notNull(),
+    imageUrl: text("image_url").notNull(),
+    description: text("description").notNull(),
+    sourceName: text("source_name"),
+    isVisible: boolean("is_visible").notNull().default(true),
+    ...ts,
   },
-  (t) => [
-    index("blog_posts_status_pub_idx").on(t.status, t.publishedAt),
-    index("blog_posts_cat_idx").on(t.categoryId, t.status, t.publishedAt),
-    index("blog_posts_created_idx").on(t.createdAt),
-  ],
+  (t) => [index("press_items_created_idx").on(t.createdAt)],
 );
 
 export const contactSubmissions = pgTable("contact_submissions", {
@@ -323,9 +280,8 @@ export const urlRedirects = pgTable("url_redirects", {
 });
 
 /* Tipler */
-export type BlogPost = typeof blogPosts.$inferSelect;
+export type PressItem = typeof pressItems.$inferSelect;
 export type Service = typeof services.$inferSelect;
 export type ProcessStep = typeof processSteps.$inferSelect;
 export type MediaAsset = typeof mediaAssets.$inferSelect;
-export type BlogCategory = typeof blogCategories.$inferSelect;
 export type PageSection = typeof pageSections.$inferSelect;

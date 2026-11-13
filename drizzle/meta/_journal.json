@@ -15,6 +15,20 @@
       "when": 1794268819962,
       "tag": "0001_left_silver_sable",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794612216891,
+      "tag": "0002_rich_sentinels",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794612239098,
+      "tag": "0003_odd_miracleman",
+      "breakpoints": true
     }
   ]
 }

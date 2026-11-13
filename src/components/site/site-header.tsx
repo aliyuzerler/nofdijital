@@ -17,7 +17,8 @@ const NAV = [
   { label: "Çalışmalarımız", href: "/#calismalar" },
   { label: "Referanslarımız", href: "/#referanslar" },
   { label: "Hakkımızda", href: "/#hakkimizda" },
-  { label: "Blog", href: "/blog" },
+  // Blog kaldırıldı → yerine Basında Biz (14.11.2026 kullanıcı talebi)
+  { label: "Basında Biz", href: "/basinda-biz" },
   { label: "İletişim", href: "/#iletisim" },
 ];
 
@@ -49,7 +50,7 @@ export function SiteHeader({ logoUrl }: { logoUrl?: string }) {
   }, [open]);
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : href === "/blog" ? pathname.startsWith("/blog") : false;
+    href === "/" ? pathname === "/" : href === "/basinda-biz" ? pathname.startsWith("/basinda-biz") : false;
 
   /** Sayfa en başa yumuşak kaydırma (reduced-motion duyarlı). */
   const scrollTop = (e: React.MouseEvent) => {

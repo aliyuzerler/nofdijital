@@ -1,8 +1,8 @@
 /**
  * Faz 3 — Idempotent seed: kaynak HTML içeriğini ilişkisel modele aktarır.
  * Kural (docs/03): tekrarlı çalıştırmada duplicate üretmemeli.
- * - 7 hizmet, 5 süreç adımı, 6 kategori, 7 örnek blog yazısı, 14 galeri görseli + logo.
- * - Blog gövdeleri şablon içeriktir → SEED_PUBLISH_POSTS=1 (parite testi) değilse draft.
+ * - 7 hizmet, 5 süreç adımı, 14 galeri görseli + logo, basın haberi örnekleri yok
+ *   (Basında Biz tamamen admin girdisidir — 14.11.2026'da blog kaldırıldı).
  */
 import "dotenv/config";
 import { createHash } from "node:crypto";
@@ -22,12 +22,10 @@ import {
   pageSections,
   services,
   processSteps,
-  blogCategories,
-  blogPosts,
   portfolioImages,
   user,
 } from "../../src/server/db/schema";
-import { SERVICES, PROCESS, CATEGORIES, POSTS, POST_BODY_HTML, GALLERY } from "../../src/content/reference-data";
+import { SERVICES, PROCESS, GALLERY } from "../../src/content/reference-data";
 
 /**
  * DB sürücüsü: DATABASE_DRIVER=postgres (+DATABASE_URL) ile Neon/Postgres'e, aksi halde lokal PGlite'a bağlanır.
@@ -53,8 +51,6 @@ if (driver === "postgres") {
   closeDb = () => pg.close();
 }
 
-const PUBLISH = process.env.SEED_PUBLISH_POSTS === "1";
-
 /* ---- yardımcılar ---- */
 const slugify = (s: string) =>
   s
@@ -65,64 +61,8 @@ const slugify = (s: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-const TR_MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-function parseTrDate(s: string): Date {
-  // "12 Kasım 2026"
-  const [d, m, y] = s.trim().split(/\s+/);
-  const mi = TR_MONTHS.indexOf(m);
-  return new Date(Date.UTC(+y!, mi, +d!, 9, 0, 0)); // Europe/Istanbul ~09:00 → UTC
-}
-
-/** Şablon HTML → Tiptap-benzeri allowlist JSON (Faz 4 editörü aynı şemayı kullanır). */
-type TNode =
-  | { type: string; attrs?: Record<string, unknown>; content?: TNode[]; text?: string; marks?: Array<{ type: string; attrs?: Record<string, unknown> }> }
-  | { type: string; text: string };
-
-function t(text: string, bold = false): TNode {
-  return bold
-    ? { type: "text", text, marks: [{ type: "bold" }] }
-    : { type: "text", text };
-}
-function p(...content: TNode[]): TNode {
-  return { type: "paragraph", content };
-}
-function h(level: 2 | 3, text: string): TNode {
-  return { type: "heading", attrs: { level }, content: [t(text)] };
-}
-function blockquote(text: string): TNode {
-  return { type: "blockquote", content: [p(t(text))] };
-}
-function list(ordered: boolean, items: string[]): TNode {
-  return { type: ordered ? "orderedList" : "bulletList", content: items.map((i) => ({ type: "listItem", content: [p(t(i))] })) };
-}
-function note(text: string): TNode {
-  return { type: "note", content: [t(text)] };
-}
-
-/** Kaynak POST_BODY_HTML'in birebir Tiptap karşılığı. */
-function templateBody(lead: string): { type: string; content: TNode[] } {
-  return {
-    type: "doc",
-    content: [
-      p(t(`${lead} Bu yazıda konuyu pratik bir çerçevede ele alıyoruz.`)),
-      h(2, "Neden önemli?"),
-      p(t("Dijital kanallarda her karar; hedef kitle, format ve zamanlama ile birlikte düşünüldüğünde anlam kazanır. Planlı ilerleyen markalar, hem üretimde hem raporlamada daha tutarlı sonuçlara ulaşır.")),
-      blockquote("Önce neyi başarmak istediğinizi netleştirin; araçlar ve formatlar ondan sonra gelir."),
-      h(2, "Uygulama adımları"),
-      list(true, ["Hedefi ve ölçüm yöntemini tanımlayın.", "Kitleyi ve kanalı netleştirin.", "Küçük bir pilot ile başlayın.", "Sonuçları düzenli olarak değerlendirin."]),
-      h(3, "Sık yapılan hatalar"),
-      p(t("Çok fazla şeyi aynı anda değiştirmek, sonuçların nedenini anlamayı zorlaştırır. Tek seferde tek değişken test etmek daha sağlıklı bir yaklaşımdır.")),
-      h(3, "Küçük bir kontrol listesi"),
-      list(false, ["Hedef net mi?", "Kreatif ve mesaj kanala uygun mu?", "Ölçüm kurulumu hazır mı?"]),
-      h(2, "Sonuç"),
-      p(t("Güçlü sonuçlar çoğu zaman karmaşık yöntemlerden değil, tutarlı uygulamadan gelir. Ekibimizle bu süreci birlikte planlamak isterseniz iletişime geçebilirsiniz.")),
-      note("Bu yazı tasarım prototipi için hazırlanmış örnek içeriktir."),
-    ],
-  };
-}
-
 async function main() {
-  console.log("Seed başlıyor… (SEED_PUBLISH_POSTS=" + PUBLISH + ")");
+  console.log("Seed başlıyor…");
 
   /* 0) Owner bootstrap kullanıcısı (şifresiz placeholder — gerçek şifre bootstrap scriptiyle) */
   const ownerId = "nof-owner-seed";
@@ -213,37 +153,11 @@ async function main() {
       .onConflictDoNothing();
   }
 
-  /* 4) Blog kategorileri */
-  for (let i = 0; i < CATEGORIES.length; i++) {
-    await db
-      .insert(blogCategories)
-      .values({ name: CATEGORIES[i]!, slug: slugify(CATEGORIES[i]!), position: i })
-      .onConflictDoNothing();
-  }
-  const catRows = await db.select().from(blogCategories);
-  const catByName = new Map(catRows.map((c) => [c.name, c]));
-
-  /* 5) Blog yazıları (idempotent; güncelleme yok — ilk hali korunur) */
-  for (const p of POSTS) {
-    const cat = catByName.get(p.category);
-    const cover = mediaByCaption.get(GALLERY.captions[p.cover] ?? "");
-    const pub = parseTrDate(p.date);
-    await db
-      .insert(blogPosts)
-      .values({
-        slug: p.slug,
-        title: p.title,
-        excerpt: p.excerpt,
-        bodyJson: templateBody(p.excerpt),
-        categoryId: cat?.id ?? null,
-        coverMediaId: cover?.id ?? null,
-        authorId: ownerId,
-        status: PUBLISH ? "published" : "draft",
-        publishedAt: PUBLISH ? pub : null,
-        readingMinutes: parseInt(p.reading, 10) || 5,
-      })
-      .onConflictDoNothing();
-  }
+  /* 4) Blog kaldırıldı (14.11.2026) — kategori/yazı seed'leri ve blog tabloları
+         migration 0002/0003 ile düşürüldü; yerine admin'den yönetilen
+         press_items (Basında Biz) geldi. Seed basın haberi EKLEMEZ:
+         gerçek haberler tamamen admin girdisidir. */
+  void ownerId;
 
   /* 6) Galeri: portfolio_images (genel galeri — project_id null) */
   let pos = 0;
@@ -341,7 +255,7 @@ async function main() {
       },
     },
     { key: "process", type: "process", eyebrow: "Çalışma Sürecimiz", title: "Beş adımda, net bir yol.", body: { accent: "net bir yol." } },
-    { key: "blog-preview", type: "blog-preview", eyebrow: "Blog", title: "Son yazılar", body: { cta: { label: "Tüm Yazılar", href: "/blog" }, count: 4 } },
+    { key: "press-preview", type: "press-preview", eyebrow: "Basında Biz", title: "Bizi yazanlar, kaynağından okuyun.", body: { cta: { label: "Tümünü Gör", href: "/basinda-biz" }, count: 4 } },
     {
       key: "contact",
       type: "contact",
@@ -387,7 +301,8 @@ async function main() {
     { label: "Hizmetler", href: "/#hizmetler" },
     { label: "Çalışmalarımız", href: "/#calismalar" },
     { label: "Hakkımızda", href: "/#hakkimizda" },
-    { label: "Blog", href: "/blog" },
+    // Blog kaldırıldı → yerine Basında Biz (14.11.2026)
+    { label: "Basında Biz", href: "/basinda-biz" },
     { label: "İletişim", href: "/#iletisim" },
   ];
   for (let i = 0; i < NAV.length; i++) {
@@ -411,8 +326,7 @@ async function main() {
   const res = await db.execute(sql`select
     (select count(*) from services) services,
     (select count(*) from process_steps) steps,
-    (select count(*) from blog_categories) cats,
-    (select count(*) from blog_posts) posts,
+    (select count(*) from press_items) press,
     (select count(*) from media_assets) media,
     (select count(*) from portfolio_images) gallery,
     (select count(*) from page_sections) sections`);

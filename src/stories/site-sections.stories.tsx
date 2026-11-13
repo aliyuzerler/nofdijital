@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, userEvent, within } from "storybook/test";
-import { PostCard, ServiceCards } from "@/components/site/cards";
+import { ServiceCards } from "@/components/site/cards";
+import { PressCards } from "@/components/site/press-cards";
 import { ReferencesSection } from "@/components/site/references-section";
 import { SERVICES, type ServiceItem } from "@/content/reference-data";
+import type { PressItemView } from "@/server/services/repositories";
 
-/** Public site ana bölümleri: 7 hizmet kartı ve blog kartı (Faz 2 birebir port). */
+/** Public site ana bölümleri: 7 hizmet kartı ve Basında Biz kartı (blog 14.11.2026'da kaldırıldı). */
 
 const meta: Meta = {
   title: "Site/Bölümler",
@@ -28,25 +30,29 @@ export const SevenServiceCards: StoryObj = {
   },
 };
 
-export const PostCardExample: StoryObj = {
-  name: "Blog Kartı",
+const PRESS_SAMPLE: PressItemView[] = [
+  {
+    id: "press-1",
+    url: "https://ornek-yayin.com/haber/nof-digital",
+    imageUrl: "/assets/gallery/gallery-01.webp",
+    description: "NOF Digital'ın ürettiği kampanya, örnek yayında ayın işleri arasında gösterildi.",
+    sourceName: "Örnek Yayın",
+  },
+];
+
+export const PressCardExample: StoryObj = {
+  name: "Basında Biz Kartı",
   render: () => (
     <div style={{ background: "var(--bg, #0b0b12)", minHeight: "60vh", padding: "48px 24px" }}>
-      <PostCard
-        slug="ornek-yazi"
-        category="Sosyal Medya"
-        title="Instagram takvimi nasıl kurulur?"
-        excerpt="Haftalık içerik takvimini 30 dakikada kuran, ölçülebilir bir akış."
-        date="10 Kas 2026"
-        cover={0}
-        cls="s5"
-      />
+      <PressCards items={PRESS_SAMPLE} />
     </div>
   ),
   play: async ({ canvasElement }) => {
-    const link = canvasElement.querySelector("a.pc") as HTMLAnchorElement | null;
+    const link = canvasElement.querySelector("a.pr") as HTMLAnchorElement | null;
     expect(link).toBeTruthy();
-    expect(link!.getAttribute("href")).toBe("/blog/ornek-yazi");
+    expect(link!.getAttribute("href")).toBe("https://ornek-yayin.com/haber/nof-digital");
+    expect(link!.getAttribute("target")).toBe("_blank");
+    expect(link!.getAttribute("rel")).toContain("noopener");
     await userEvent.hover(link!);
   },
 };

@@ -19,7 +19,8 @@ const SECTION_LABEL: Record<string, string> = {
   stats: "İstatistik Bandı (Sayaçlar)",
   about: "Hakkımızda",
   process: "Süreç",
-  "blog-preview": "Blog Önizleme",
+  // Blog kaldırıldı (14.11.2026) → yerine Basında Biz önizlemesi.
+  "press-preview": "Basında Biz Önizleme",
   contact: "İletişim",
 };
 

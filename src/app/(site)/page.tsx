@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { Fragment } from "react";
-import { PostCard, ServiceCards } from "@/components/site/cards";
+import { ServiceCards } from "@/components/site/cards";
+import { PressCards } from "@/components/site/press-cards";
 import { WorkGallery } from "@/components/site/work-gallery";
 import { ReferencesSection } from "@/components/site/references-section";
 import { StatsBand } from "@/components/site/stats-band";
 import { accentSegments, sectionAccent } from "@/lib/accent";
-import { getGalleryItems, getHomeSections, getProcessSteps, getPublishedPosts, getServices, getStatsSection, toPostItems } from "@/server/services/repositories";
+import { getGalleryItems, getHomeSections, getPressItems, getProcessSteps, getServices, getStatsSection } from "@/server/services/repositories";
 import { getPublicSettings } from "@/server/services/settings";
 import { GALLERY, SITE } from "@/content/reference-data";
-
-const CLS = ["s7", "s5", "s5", "s7"];
 
 /**
  * Başlığı DB'den basar; accent parçalara bölüp vurgulu bölümü etiketleyerek
@@ -98,12 +97,12 @@ function AccentedLines({
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [sections, services, steps, galleryItems, posts, statsSection, settings] = await Promise.all([
+  const [sections, services, steps, galleryItems, pressItems, statsSection, settings] = await Promise.all([
     getHomeSections(),
     getServices(),
     getProcessSteps(),
     getGalleryItems(),
-    getPublishedPosts(4),
+    getPressItems(4),
     getStatsSection(),
     getPublicSettings(),
   ]);
@@ -113,9 +112,11 @@ export default async function HomePage() {
   const process = sections.process?.body ?? {};
   const servicesBody = sections.services?.body ?? {};
   const galleryBody = sections.gallery?.body ?? {};
-  const blogBody = sections["blog-preview"]?.body ?? {};
+  // BASINDA BİZ (14.11.2026): blog-preview bölümü yerine geçti — başlık/CTA
+  // DB'den (page_sections: press-preview), kartlar press_items tablosundan gelir.
+  const pressBody = sections["press-preview"]?.body ?? {};
   const contact = sections.contact?.body ?? {};
-  const blogCta = (blogBody as { cta?: { label?: string; href?: string } }).cta;
+  const pressCta = (pressBody as { cta?: { label?: string; href?: string } }).cta;
 
   const heroLead = (hero.lead as string) ?? SITE.heroLead;
   const heroImages = (hero.images as Array<{ mediaKey: string; alt: string; cls: string }> | undefined) ?? [
@@ -146,7 +147,6 @@ export default async function HomePage() {
   const socialLinks = [
     { icon: "ig", label: "Instagram", href: settings.social.instagram || "/#iletisim" },
   ];
-  const postItems = toPostItems(posts);
 
   // İstatistik bandı: admin panelinden yönetilir (page_sections: stats → bodyJson).
   // Bölüm DB'de yoksa varsayılan içerikle gösterilir; admin "Görünür" kapalıysa gizlenir.
@@ -328,44 +328,39 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* BLOG ÖZET */}
-      <section className="sec alt" id="blog-ozet">
+      {/* BASINDA BİZ ÖNİZLEME (14.11.2026 — blog özetinin yerini aldı):
+          başlık/CTA page_sections "press-preview" satırından, kartlar
+          press_items tablosunun en güncel 4 kaydından gelir. */}
+      <section className="sec alt" id="basinda-biz-ozet">
         <div className="wrap">
           <div className="bh">
             <div>
               <span className="eyb" data-r>
-                {sections["blog-preview"]?.eyebrow ?? "Blog"}
+                {sections["press-preview"]?.eyebrow ?? "Basında Biz"}
               </span>
               <h2 className="h2" data-r>
                 <AccentedTitle
-                  text={sections["blog-preview"]?.title ?? "Son yazılar"}
-                  accent={sectionAccent(blogBody, "blog-preview")}
+                  text={sections["press-preview"]?.title ?? "Bizi yazanlar, kaynağından okuyun."}
+                  accent={sectionAccent(pressBody, "press-preview")}
                   tag="span"
                   tone="pl"
                 />
               </h2>
             </div>
-            <Link className="btn" href={blogCta?.href ?? "/blog"} data-r>
-              {blogCta?.label ?? "Tüm Yazılar"}{" "}
+            <Link className="btn" href={pressCta?.href ?? "/basinda-biz"} data-r>
+              {pressCta?.label ?? "Tümünü Gör"}{" "}
               <svg className="i">
                 <use href="#i-arr" />
               </svg>
             </Link>
           </div>
-          <div className="bgrid" id="bhome">
-            {postItems.slice(0, 4).map((p, i) => (
-              <PostCard
-                key={p.slug}
-                slug={p.slug}
-                category={p.category}
-                title={p.title}
-                excerpt={p.excerpt}
-                date={p.date}
-                cover={p.cover}
-                cls={CLS[i] ?? ""}
-              />
-            ))}
-          </div>
+          {pressItems.length > 0 ? (
+            <PressCards items={pressItems} />
+          ) : (
+            <p className="pr-hint" data-r>
+              İlk basın haberleri admin panelinden eklendiğinde burada listelenecek.
+            </p>
+          )}
         </div>
       </section>
 

@@ -118,109 +118,6 @@ export const PROCESS: Array<{ title: string; description: string }> = [
   },
 ];
 
-export const CATEGORIES = [
-  "Sosyal Medya",
-  "Google Ads",
-  "Meta Ads",
-  "Prodüksiyon",
-  "İçerik Stratejileri",
-  "Dijital Pazarlama",
-] as const;
-
-export interface PostItem {
-  slug: string;
-  category: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  cover: number;
-  reading: string;
-}
-
-export const POSTS: PostItem[] = [
-  {
-    slug: "icerik-takvimi",
-    category: "Sosyal Medya",
-    title: "Sosyal Medya İçerik Takvimi Nasıl Planlanır?",
-    excerpt:
-      "Düzenli paylaşım, planlı bir takvimle başlar. İçerik sütunları ve format dengesiyle sürdürülebilir bir akış kurun.",
-    date: "12 Kasım 2026",
-    cover: 4,
-    reading: "6 dk",
-  },
-  {
-    slug: "google-ads-yapisi",
-    category: "Google Ads",
-    title: "Google Ads Hesabında Kampanya Yapısı Kurmanın Temelleri",
-    excerpt: "Net bir hesap yapısı, bütçenin doğru yere gitmesini ve verilerin okunabilir olmasını sağlar.",
-    date: "04 Kasım 2026",
-    cover: 0,
-    reading: "7 dk",
-  },
-  {
-    slug: "meta-kreatif-testi",
-    category: "Meta Ads",
-    title: "Meta Ads'te Kreatif Testi: Neyi, Nasıl Ölçmeliyiz?",
-    excerpt: "Aynı anda çok değişken test etmek yerine tek bir hipotezle ilerlemek daha güvenilir sonuç verir.",
-    date: "28 Ekim 2026",
-    cover: 8,
-    reading: "5 dk",
-  },
-  {
-    slug: "cekim-oncesi",
-    category: "Prodüksiyon",
-    title: "Çekim Öncesi Hazırlık: Prodüksiyonu Kolaylaştıran Adımlar",
-    excerpt: "Konsept, mekân, ekipman ve çekim listesi önceden netleştiğinde set günü sakin ve verimli geçer.",
-    date: "20 Ekim 2026",
-    cover: 5,
-    reading: "6 dk",
-  },
-  {
-    slug: "icerik-stratejisi",
-    category: "İçerik Stratejileri",
-    title: "Markanız İçin İçerik Stratejisi: Hikâyeden Formata",
-    excerpt: "Güçlü bir hikâye, her kanalda farklı biçimde ama tutarlı bir sesle anlatılabilir.",
-    date: "11 Ekim 2026",
-    cover: 10,
-    reading: "8 dk",
-  },
-  {
-    slug: "dogru-metrikler",
-    category: "Dijital Pazarlama",
-    title: "Raporlamada Doğru Metrikleri Seçmek",
-    excerpt: "Her göstergeyi izlemek yerine hedefle ilişkili birkaç metriğe odaklanmak karar vermeyi hızlandırır.",
-    date: "02 Ekim 2026",
-    cover: 9,
-    reading: "5 dk",
-  },
-  {
-    slug: "video-ritim",
-    category: "Sosyal Medya",
-    title: "Kısa Video İçeriklerde Ritim ve İlk Üç Saniye",
-    excerpt: "İzleyiciyi tutan şey; güçlü bir açılış, net bir akış ve kanala uygun bir kurgu ritmidir.",
-    date: "24 Eylül 2026",
-    cover: 2,
-    reading: "4 dk",
-  },
-];
-
-/** Kaynak body() şablonu — prototip içerik (seed'de draft durumu). */
-export const POST_BODY_HTML = `
-<p>%LEAD% Bu yazıda konuyu pratik bir çerçevede ele alıyoruz.</p>
-<h2>Neden önemli?</h2>
-<p>Dijital kanallarda her karar; hedef kitle, format ve zamanlama ile birlikte düşünüldüğünde anlam kazanır. Planlı ilerleyen markalar, hem üretimde hem raporlamada daha tutarlı sonuçlara ulaşır.</p>
-<blockquote>Önce neyi başarmak istediğinizi netleştirin; araçlar ve formatlar ondan sonra gelir.</blockquote>
-<h2>Uygulama adımları</h2>
-<ol><li>Hedefi ve ölçüm yöntemini tanımlayın.</li><li>Kitleyi ve kanalı netleştirin.</li><li>Küçük bir pilot ile başlayın.</li><li>Sonuçları düzenli olarak değerlendirin.</li></ol>
-<h3>Sık yapılan hatalar</h3>
-<p>Çok fazla şeyi aynı anda değiştirmek, sonuçların nedenini anlamayı zorlaştırır. Tek seferde tek değişken test etmek daha sağlıklı bir yaklaşımdır.</p>
-<h3>Küçük bir kontrol listesi</h3>
-<ul><li>Hedef net mi?</li><li>Kreatif ve mesaj kanala uygun mu?</li><li>Ölçüm kurulumu hazır mı?</li></ul>
-<h2>Sonuç</h2>
-<p>Güçlü sonuçlar çoğu zaman karmaşık yöntemlerden değil, tutarlı uygulamadan gelir. Ekibimizle bu süreci birlikte planlamak isterseniz iletişime geçebilirsiniz.</p>
-<div class="nt">Bu yazı tasarım prototipi için hazırlanmış örnek içeriktir.</div>
-`;
-
 /** Site meta — Faz 5'te site_settings tablosundan gelir. */
 export const SITE = {
   name: "NOF DİJİTAL",
@@ -252,7 +149,6 @@ export const SITE = {
     { icon: "mail", text: "E-posta adresi — buraya eklenecek" },
   ],
   footerContact: ["Telefon — eklenecek", "E-posta — eklenecek", "Adres — eklenecek"],
-  footerNote: "Tasarım prototipi — içerikler örnektir.",
 } as const;
 
 /** Hizmet seçimi formuna aktarılırken kullanılan seçenek listesi. */

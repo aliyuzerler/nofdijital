@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/server/db";
-import { blogPosts, mediaAssets, pages, portfolioImages } from "@/server/db/schema";
+import { mediaAssets, pages, portfolioImages } from "@/server/db/schema";
 import { getStorage } from "@/server/storage";
 import { logAudit, ok, fail, runAction } from "@/features/admin/shared";
 
@@ -98,11 +98,7 @@ export async function deleteMedia(raw: unknown) {
     const asset = rows[0];
     if (!asset) return fail("Medya bulunamadı.");
 
-    // Kullanımda mı? (MVP kontrol: kapak/OG/portfolyo)
-    const [cover] = await db.select({ id: blogPosts.id }).from(blogPosts).where(and(eq(blogPosts.coverMediaId, input.id), isNull(blogPosts.deletedAt))).limit(1);
-    if (cover) return fail("Bu görsel bir blog yazısının kapağında kullanılıyor; önce kapak görselini değiştirin.");
-    const [og] = await db.select({ id: blogPosts.id }).from(blogPosts).where(and(eq(blogPosts.ogImageId, input.id), isNull(blogPosts.deletedAt))).limit(1);
-    if (og) return fail("Bu görsel bir blog yazısının OG görseli olarak kullanılıyor.");
+    // Kullanımda mı? (MVP kontrol: sayfa OG / portfolyo — blog 14.11.2026'da kaldırıldı)
     const [pageOg] = await db.select({ id: pages.id }).from(pages).where(eq(pages.ogImageId, input.id)).limit(1);
     if (pageOg) return fail("Bu görsel bir sayfanın OG görseli olarak kullanılıyor.");
     const [gal] = await db.select({ id: portfolioImages.id }).from(portfolioImages).where(eq(portfolioImages.mediaAssetId, input.id)).limit(1);

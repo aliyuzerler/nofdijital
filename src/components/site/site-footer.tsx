@@ -17,7 +17,8 @@ const MENU = [
   { label: "Çalışmalarımız", href: "/#calismalar" },
   { label: "Referanslarımız", href: "/#referanslar" },
   { label: "Hakkımızda", href: "/#hakkimizda" },
-  { label: "Blog", href: "/blog" },
+  // Blog kaldırıldı → yerine Basında Biz (14.11.2026 kullanıcı talebi)
+  { label: "Basında Biz", href: "/basinda-biz" },
   { label: "İletişim", href: "/#iletisim" },
 ];
 
@@ -100,8 +101,9 @@ export function SiteFooter({
           </div>
         </div>
         <div className="fb">
-          <span>© {new Date().getFullYear()} NOF DİJİTAL. Tüm hakları saklıdır.</span>
-          <span>{SITE.footerNote}</span>
+          {/* Marka yazımı "NOF DIGITAL" (logodaki yazım) — kullanıcı talebi 14.11.2026.
+              "Tasarım prototipi" notu kaldırıldı. */}
+          <span>© {new Date().getFullYear()} NOF DIGITAL. Tüm hakları saklıdır.</span>
         </div>
       </div>
     </footer>

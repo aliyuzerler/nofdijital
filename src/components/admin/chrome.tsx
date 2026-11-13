@@ -51,7 +51,8 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: "İçerik",
     items: [
-      { href: "/admin/blog", label: "Blog", icon: Newspaper },
+      // Blog kaldırıldı → yerine Basında Biz (14.11.2026 kullanıcı talebi).
+      { href: "/admin/press", label: "Basında Biz", icon: Newspaper },
       { href: "/admin/media", label: "Medya", icon: ImageIcon },
     ],
   },

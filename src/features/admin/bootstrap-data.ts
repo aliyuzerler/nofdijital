@@ -10,9 +10,8 @@ import {
   processSteps,
   services,
   siteSettings,
-  blogCategories,
 } from "@/server/db/schema";
-import { CATEGORIES, GALLERY, PROCESS, SERVICES } from "@/content/reference-data";
+import { GALLERY, PROCESS, SERVICES } from "@/content/reference-data";
 
 /**
  * Admin ↔ site içerik hizalama (idempotent bootstrap seed).
@@ -26,7 +25,8 @@ import { CATEGORIES, GALLERY, PROCESS, SERVICES } from "@/content/reference-data
  * - Idempotent: her blok yalnızca kendi tablosu boşsa yazar (onConflictDoNothing).
  * - Medya: repo'daki statik /uploads/gallery/*.webp dosyalarını işaret eder
  *   (Vercel'de statik servis edilir; storage sağlayıcısından bağımsız çalışır).
- * - Blog yazıları seed EDİLMEZ (kullanıcıya ait içerik).
+ * - Blog kaldırıldı (14.11.2026); press_items kayıtları seed EDİLMEZ
+ *   (basın haberleri tamamen admin girdisidir).
  * - Hata halinde sessiz geçilir; admin sayfası yine de açılır (ensureStatsSection
  *   deseniyle aynı davranış).
  */
@@ -142,16 +142,7 @@ async function seedProcessSteps(): Promise<void> {
 }
 
 async function seedCategories(): Promise<void> {
-  const db = await getDb();
-  const existing = await db.select({ id: blogCategories.id }).from(blogCategories).limit(1);
-  if (existing.length) return;
-  for (let i = 0; i < CATEGORIES.length; i++) {
-    const name = CATEGORIES[i]!;
-    await db
-      .insert(blogCategories)
-      .values({ name, slug: slugify(name), position: i })
-      .onConflictDoNothing();
-  }
+  // Blog kategorileri 14.11.2026'da blog ile birlikte kaldırıldı — no-op.
 }
 
 async function seedHomePage(): Promise<void> {
@@ -239,7 +230,7 @@ async function seedHomePage(): Promise<void> {
       },
     },
     { key: "process", type: "process", eyebrow: "Çalışma Sürecimiz", title: "Beş adımda, net bir yol.", body: { accent: "net bir yol." } },
-    { key: "blog-preview", type: "blog-preview", eyebrow: "Blog", title: "Son yazılar", body: { cta: { label: "Tüm Yazılar", href: "/blog" }, count: 4 } },
+    { key: "press-preview", type: "press-preview", eyebrow: "Basında Biz", title: "Bizi yazanlar, kaynağından okuyun.", body: { cta: { label: "Tümünü Gör", href: "/basinda-biz" }, count: 4 } },
     {
       key: "contact",
       type: "contact",
@@ -305,7 +296,8 @@ async function seedNavigation(): Promise<void> {
     { label: "Çalışmalarımız", href: "/#calismalar" },
     { label: "Referanslarımız", href: "/#referanslar" },
     { label: "Hakkımızda", href: "/#hakkimizda" },
-    { label: "Blog", href: "/blog" },
+    // Blog kaldırıldı → yerine Basında Biz (14.11.2026)
+    { label: "Basında Biz", href: "/basinda-biz" },
     { label: "İletişim", href: "/#iletisim" },
   ];
   for (let i = 0; i < NAV.length; i++) {

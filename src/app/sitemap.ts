@@ -2,31 +2,19 @@ import type { MetadataRoute } from "next";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/server/db";
 import { pages } from "@/server/db/schema";
-import { getPublishedPosts } from "@/server/services/repositories";
 import { getBaseUrl } from "@/lib/base-url";
 
-/** Dinamik sitemap: statik rotalar + published yazılar (robotsIndex hariç) + published sayfalar. */
+/** Dinamik sitemap: statik rotalar + published sayfalar. Blog kaldırıldı (14.11.2026) → /basinda-biz. */
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getBaseUrl();
   const entries: MetadataRoute.Sitemap = [
     { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/blog`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/basinda-biz`, changeFrequency: "weekly", priority: 0.8 },
   ];
 
   try {
-    const posts = await getPublishedPosts(200);
-    for (const p of posts) {
-      if (!p.robotsIndex) continue;
-      entries.push({
-        url: `${base}/blog/${p.slug}`,
-        lastModified: p.publishedAt ?? undefined,
-        changeFrequency: "monthly",
-        priority: 0.6,
-      });
-    }
-
     const db = await getDb();
     const pageRows = await db
       .select({ slug: pages.slug, updatedAt: pages.updatedAt })

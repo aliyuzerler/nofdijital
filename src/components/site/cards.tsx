@@ -1,7 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { GALLERY, SERVICES, type ServiceItem } from "@/content/reference-data";
+
+/**
+ * Hizmet kartları. NOT: Blog kartı (PostCard) 14.11.2026'da blog ile birlikte
+ * kaldırıldı; yerine src/components/site/press-cards.tsx (Basında Biz) geldi.
+ */
 
 /** 7 hizmet kartı — tıkla/Enter → hizmet seçimi + iletişime kaydırma. */
 export function ServiceCards({ services = SERVICES }: { services?: ServiceItem[] }) {
@@ -41,45 +45,5 @@ export function ServiceCards({ services = SERVICES }: { services?: ServiceItem[]
         </article>
       ))}
     </div>
-  );
-}
-
-/** Blog kartı (referans .pc) — cover artık doğrudan URL'dir (DB medya publicUrl). */
-export function PostCard({
-  slug,
-  category,
-  title,
-  excerpt,
-  date,
-  cover,
-  cls = "",
-}: {
-  slug: string;
-  category: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  cover: number | string;
-  cls?: string;
-}) {
-  const src = typeof cover === "string" ? cover : (GALLERY.files[cover] ?? GALLERY.files[0]!);
-  return (
-    <Link className={`pc ${cls}`.trim()} href={`/blog/${slug}`}>
-      <div className="im">
-        <img src={src} alt="" loading="lazy" />
-      </div>
-      <div className="mt">
-        <span className="tag">{category}</span>
-        <span>{date}</span>
-      </div>
-      <h3>{title}</h3>
-      <p>{excerpt}</p>
-      <span className="rd">
-        Yazıyı oku{" "}
-        <svg className="i">
-          <use href="#i-arr" />
-        </svg>
-      </span>
-    </Link>
   );
 }

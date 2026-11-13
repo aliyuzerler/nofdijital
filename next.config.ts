@@ -28,6 +28,13 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   reactStrictMode: false,
+  // Blog kaldırıldı (14.11.2026) → eski /blog adresleri Basında Biz'e yönlenir.
+  async redirects() {
+    return [
+      { source: "/blog", destination: "/basinda-biz", permanent: true },
+      { source: "/blog/:path*", destination: "/basinda-biz", permanent: true },
+    ];
+  },
   // PGlite WASM ve auth SDK'sı bundle edilemez; runtime'da native require edilir.
   serverExternalPackages: ["@electric-sql/pglite", "better-auth", "postgres"],
   async headers() {
